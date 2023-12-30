@@ -6,12 +6,24 @@
 
 ## Storytime.
 
-<div style="background:#fefefe;margin-bottom:20px;padding: 20px;"><img src="./art/Steps/Step1.png"></div>
-<div style="background:#fefefe;margin-bottom:20px;padding: 20px;"><img src="./art/Steps/Step2.png"></div>
-<div style="background:#fefefe;margin-bottom:20px;padding: 20px;"><img src="./art/Steps/Step3.png"></div>
-<div style="background:#fefefe;margin-bottom:20px;padding: 20px;"><img src="./art/Steps/Step4.png"></div>
-<div style="background:#fefefe;margin-bottom:20px;padding: 20px;"><img src="./art/Steps/Step5.png"></div>
-<div style="background:#fefefe;margin-bottom:20px;padding: 20px;"><img src="./art/Steps/Step6.png"></div>
+> <img src="./art/Steps/Step1.png">
+
+
+> <img src="./art/Steps/Step2.png">
+
+
+> <img src="./art/Steps/Step3.png">
+
+
+> <img src="./art/Steps/Step4.png">
+
+
+> <img src="./art/Steps/Step5.png">
+
+
+> <img src="./art/Steps/Step6.png">
+
+
 
 
 ## What it does.
