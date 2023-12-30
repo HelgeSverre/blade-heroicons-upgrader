@@ -31,7 +31,7 @@ class UpgradeIcons extends Command
             $realPath = realpath($path);
 
             if (! File::exists($realPath)) {
-                $this->error("The path {$realPath} does not exist.");
+                $this->error("The path {$path} does not exist.");
 
                 return;
             }
