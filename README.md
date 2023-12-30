@@ -6,6 +6,8 @@
 
 ## Storytime.
 
+[Skip to installation](#what-it-does)
+
 <img src="./art/Steps/Step1.png">
 <br><br>
 
@@ -59,13 +61,13 @@ Run the command to upgrade your blade files:
 php artisan blade-heroicons-upgrader:upgrade 
 ```
 
-You may also specify a directory to search in:
+You may also specify one or more files or directories to run replacements on:
 
 ```bash 
-php artisan blade-heroicons-upgrader:upgrade resources/views
+php artisan blade-heroicons-upgrader:upgrade ./resources/views ./app/Composers/MenuComposer.php
 ```
 
-You can also do a dry run to see what will be changed:
+You can also do a dry run to see how many replacements in which files will be done.
 
 ```bash
 php artisan blade-heroicons-upgrader:upgrade --dry
