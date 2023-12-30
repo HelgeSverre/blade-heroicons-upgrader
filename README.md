@@ -56,19 +56,19 @@ composer require --dev helgesverre/blade-heroicons-upgrader
 Run the command to upgrade your blade files:
 
 ```bash
-php artisan blade-icons:upgrade 
+php artisan blade-heroicons-upgrader:upgrade 
 ```
 
 You may also specify a directory to search in:
 
 ```bash 
-php artisan blade-icons:upgrade resources/views
+php artisan blade-heroicons-upgrader:upgrade resources/views
 ```
 
 You can also do a dry run to see what will be changed:
 
 ```bash
-php artisan blade-icons:upgrade --dry
+php artisan blade-heroicons-upgrader:upgrade --dry
 ```
 
 Adding an FAQ section to your README is a great way to address common questions and concerns. Here's how you can
