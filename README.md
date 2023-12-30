@@ -6,22 +6,27 @@
 
 ## Storytime.
 
-> <img src="./art/Steps/Step1.png">
+<img src="./art/Steps/Step1.png" width="400">
+<br><br>
+
+<img src="./art/Steps/Step2.png" width="400">
+<br><br>
 
 
-> <img src="./art/Steps/Step2.png">
+<img src="./art/Steps/Step3.png" width="400">
+<br><br>
 
 
-> <img src="./art/Steps/Step3.png">
+<img src="./art/Steps/Step4.png" width="400">
+<br><br>
 
 
-> <img src="./art/Steps/Step4.png">
+<img src="./art/Steps/Step5.png" width="400">
+<br><br>
 
 
-> <img src="./art/Steps/Step5.png">
-
-
-> <img src="./art/Steps/Step6.png">
+<img src="./art/Steps/Step6.png" width="400">
+<br><br>
 
 
 
