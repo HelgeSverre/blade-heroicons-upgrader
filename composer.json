@@ -1,65 +1,78 @@
 {
-    "name": "laravel-zero/laravel-zero",
-    "description": "The Laravel Zero Framework.",
+    "name": "helgesverre/blade-heroicons-upgrader",
+    "description": ":package_description",
     "keywords": [
-        "framework",
+        "helgesverre",
         "laravel",
-        "laravel zero",
-        "console",
-        "cli"
+        "blade-icons",
+        "heroicons",
+        "blade-heroicons-upgrader"
     ],
-    "homepage": "https://laravel-zero.com",
-    "type": "project",
+    "homepage": "https://github.com/helgesverre/blade-heroicons-upgrader",
     "license": "MIT",
-    "support": {
-        "issues": "https://github.com/laravel-zero/laravel-zero/issues",
-        "source": "https://github.com/laravel-zero/laravel-zero"
-    },
     "authors": [
         {
-            "name": "Nuno Maduro",
-            "email": "enunomaduro@gmail.com"
+            "name": "Helge Sverre",
+            "email": "helge.sverre@gmail.com",
+            "role": "Developer"
         }
     ],
     "require": {
         "php": "^8.1",
-        "laravel-zero/framework": "^10.2",
-        "nunomaduro/termwind": "^1.15.1",
-        "spatie/regex": "^3.1"
+        "spatie/regex": "^3.1.1",
+        "spatie/laravel-package-tools": "^1.14.0",
+        "illuminate/contracts": "^10.0"
     },
     "require-dev": {
-        "laravel/pint": "^1.13",
-        "mockery/mockery": "^1.6",
-        "pestphp/pest": "^2.22"
+        "laravel/pint": "^1.0",
+        "nunomaduro/collision": "^7.8",
+        "larastan/larastan": "^2.0.1",
+        "orchestra/testbench": "^8.8",
+        "pestphp/pest": "^2.20",
+        "pestphp/pest-plugin-arch": "^2.0",
+        "pestphp/pest-plugin-laravel": "^2.0",
+        "phpstan/extension-installer": "^1.1",
+        "phpstan/phpstan-deprecation-rules": "^1.0",
+        "phpstan/phpstan-phpunit": "^1.0",
+        "spatie/laravel-ray": "^1.26"
     },
     "autoload": {
         "psr-4": {
-            "App\\": "app/",
-            "Database\\Factories\\": "database/factories/",
-            "Database\\Seeders\\": "database/seeders/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "Tests\\": "tests/"
+            "HelgeSverre\\BladeHeroiconsUpgrader\\": "src/"
         }
     },
     "scripts": {
-        "format": [
-            "./vendor/bin/pint"
-        ]
+        "post-autoload-dump": "@composer run prepare",
+        "clear": "@php vendor/bin/testbench package:purge-skeleton --ansi",
+        "prepare": "@php vendor/bin/testbench package:discover --ansi",
+        "build": [
+            "@composer run prepare",
+            "@php vendor/bin/testbench workbench:build --ansi"
+        ],
+        "start": [
+            "Composer\\Config::disableProcessTimeout",
+            "@composer run build",
+            "@php vendor/bin/testbench serve"
+        ],
+        "analyse": "vendor/bin/phpstan analyse",
+        "test": "vendor/bin/pest",
+        "test-coverage": "vendor/bin/pest --coverage",
+        "format": "vendor/bin/pint"
     },
     "config": {
-        "preferred-install": "dist",
         "sort-packages": true,
-        "optimize-autoloader": true,
         "allow-plugins": {
-            "pestphp/pest-plugin": true
+            "pestphp/pest-plugin": true,
+            "phpstan/extension-installer": true
         }
     },
-    "minimum-stability": "stable",
-    "prefer-stable": true,
-    "bin": [
-        "blade-icons-upgrader"
-    ]
+    "extra": {
+        "laravel": {
+            "providers": [
+                "HelgeSverre\\BladeHeroiconsUpgrader\\BladeHeroiconsUpgraderServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
 }

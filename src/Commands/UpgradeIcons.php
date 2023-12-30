@@ -1,18 +1,16 @@
 <?php
 
-namespace App\Commands;
+namespace HelgeSverre\BladeHeroiconsUpgrader\Commands;
 
-use Exception;
+use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
-use LaravelZero\Framework\Commands\Command;
 use Spatie\Regex\Regex;
 
-class ReplaceIcons extends Command
+class UpgradeIcons extends Command
 {
-    protected $signature = 'run
-                            {path=./resources/views : The path to the directory or file to replace icons in.}
-                            {--mapping=auto} : The name of the mapping file to use, leave blank to attempt autodetection
-                            {--dry : Perform a dry run without actually replacing any icons.}';
+    protected $signature = 'blade-heroicons-upgrader:upgrade
+                            {path=./resources/views : The path to the directory or file to replace icons in}
+                            {--dry : Perform a dry run without actually replacing any icons}';
 
     protected $description = 'Replace old icon names with new ones';
 
@@ -20,15 +18,22 @@ class ReplaceIcons extends Command
 
     public function handle()
     {
-        $files = File::allFiles(base_path('resources/views'));
 
-        $files[] = base_path('app/Composers/MenuComposer.php');
+        $path = $this->argument('path');
+
+        if (! File::exists($path)) {
+            $this->error("The path {$path} does not exist.");
+
+            return;
+        }
+
+        $files = File::allFiles($path);
 
         $iconsMap = $this->getIconsMap();
         $totalReplaced = 0;
 
         foreach ($files as $file) {
-            $this->info("FILE: {$file}");
+            $this->info("\n{$file->getRelativePath()}");
 
             $count = $this->replaceIconsInFile($file, $iconsMap);
 
@@ -83,29 +88,6 @@ class ReplaceIcons extends Command
 
     protected function getIconsMap(): array
     {
-        return match ($this->argument('mapping')) {
-            'auto' => $this->attemptAutodetectMapping() ?? throw new Exception('Autodetection failed'),
-            'heroicons' => $this->loadMapping('heroicons'),
-            default => throw new Exception("Unknown mapping file: {$this->argument('mapping')}"),
-        };
-
-    }
-
-    protected function attemptAutodetectMapping()
-    {
-        // TODO: Grab the composer.json file to figure out which iconset is being used, if we dont have it, throw error.
-    }
-
-    private function loadMapping(string $mapping): array
-    {
-        $path = base_path("mappings/$mapping.json");
-
-        if (! File::exists($path)) {
-            throw new Exception("Mapping file does not exist: {$path}");
-        }
-
-        $json = File::get($path);
-
-        return json_decode($json, true, 512, JSON_THROW_ON_ERROR);
+        return config('blade-heroicons-upgrader.replacements');
     }
 }
