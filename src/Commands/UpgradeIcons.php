@@ -3,14 +3,13 @@
 namespace HelgeSverre\BladeHeroiconsUpgrader\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\File;
 use Spatie\Regex\Regex;
 
 class UpgradeIcons extends Command
 {
-    protected $signature = 'blade-heroicons-upgrader:upgrade
-                            {path=./resources/views : The path to the directory or file to replace icons in}
-                            {--dry : Perform a dry run without actually replacing any icons}';
+    protected $signature = 'blade-heroicons-upgrader:upgrade {paths?*} {--dry : Perform a dry run without actually replacing any icons}';
 
     protected $description = 'Replace old icon names with new ones';
 
@@ -18,31 +17,46 @@ class UpgradeIcons extends Command
 
     public function handle()
     {
+        $paths = Arr::wrap($this->argument('paths'));
 
-        $path = $this->argument('path');
-
-        if (! File::exists($path)) {
-            $this->error("The path {$path} does not exist.");
-
-            return;
+        if (empty($paths)) {
+            $paths = ['./resources/views'];
+            $this->comment("No path(s) provided, using default: {$paths[0]}");
         }
 
-        $files = File::allFiles($path);
-
-        $iconsMap = $this->getIconsMap();
         $totalReplaced = 0;
+        $totalFilesWithReplacements = 0;
 
-        foreach ($files as $file) {
-            $this->info("\n{$file->getRelativePathname()}");
+        foreach ($paths as $path) {
+            $realPath = realpath($path);
 
-            $count = $this->replaceIconsInFile($file, $iconsMap);
+            if (! File::exists($realPath)) {
+                $this->error("The path {$realPath} does not exist.");
 
-            $totalReplaced += $count;
+                return;
+            }
 
-            $this->info("> Replaced {$count} icon names in file.");
+            $files = File::isFile($realPath) ? [$realPath] : File::allFiles($realPath);
+
+            $iconsMap = $this->getIconsMap();
+
+            foreach ($files as $file) {
+                $this->info("{$file}");
+
+                $count = $this->replaceIconsInFile($file, $iconsMap);
+
+                $totalReplaced += $count;
+
+                if ($count) {
+                    $totalFilesWithReplacements++;
+                    $this->comment("> Replaced {$count} icons.\n");
+                }
+
+            }
+
         }
 
-        $this->info("\n\n>>> Replaced {$totalReplaced} icon names in total.");
+        $this->comment("\n\nDONE: Replaced {$totalReplaced} icons across {$totalFilesWithReplacements} files.");
     }
 
     protected function replaceIconsInFile(string $file, array $iconsMap): int
