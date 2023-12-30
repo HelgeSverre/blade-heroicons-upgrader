@@ -6,30 +6,27 @@
 
 ## Storytime.
 
-<img src="./art/Steps/Step1.png" width="400">
+<img src="./art/Steps/Step1.png">
 <br><br>
 
-<img src="./art/Steps/Step2.png" width="400">
-<br><br>
-
-
-<img src="./art/Steps/Step3.png" width="400">
+<img src="./art/Steps/Step2.png">
 <br><br>
 
 
-<img src="./art/Steps/Step4.png" width="400">
+<img src="./art/Steps/Step3.png">
 <br><br>
 
 
-<img src="./art/Steps/Step5.png" width="400">
+<img src="./art/Steps/Step4.png">
 <br><br>
 
 
-<img src="./art/Steps/Step6.png" width="400">
+<img src="./art/Steps/Step5.png">
 <br><br>
 
 
-
+<img src="./art/Steps/Step6.png">
+<br><br>
 
 ## What it does.
 
@@ -45,9 +42,6 @@ and `<x-clipboard-document-check />`.
 It's built to prevent overlapping or incorrect updates, ensuring that icons are not mistakenly transformed into formats
 like `<x-heroicon-o-server-stack-stack />`. It also supports the new `outline` and `solid` variants, so you can easily
 update to the new syntax, such as `<x-heroicon-o-server />` and `<x-heroicon-s-server />`.
-
-
-
 
 ## Installation
 
