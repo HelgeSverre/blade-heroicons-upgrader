@@ -33,7 +33,7 @@ class UpgradeIcons extends Command
         $totalReplaced = 0;
 
         foreach ($files as $file) {
-            $this->info("\n{$file->getRelativePath()}");
+            $this->info("\n{$file->getRelativePathname()}");
 
             $count = $this->replaceIconsInFile($file, $iconsMap);
 
@@ -42,7 +42,7 @@ class UpgradeIcons extends Command
             $this->info("> Replaced {$count} icon names in file.");
         }
 
-        $this->info(">>> Replaced {$totalReplaced} icon names in total.");
+        $this->info("\n\n>>> Replaced {$totalReplaced} icon names in total.");
     }
 
     protected function replaceIconsInFile(string $file, array $iconsMap): int
