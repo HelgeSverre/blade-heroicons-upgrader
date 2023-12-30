@@ -6,7 +6,7 @@
 
 ## Storytime.
 
-[Skip to installation](#what-it-does)
+[Skip to installation](#installation)
 
 <img src="./art/Steps/Step1.png">
 <br><br>
