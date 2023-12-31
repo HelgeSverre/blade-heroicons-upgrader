@@ -41,9 +41,8 @@ This tool replaces old icon names in your code, such as `@svg("clipboard-check")
 updates them to their new v2 equivalents such as `@svg("clipboard-document-check")`
 and `<x-clipboard-document-check />`.
 
-It's built to prevent overlapping or incorrect updates, ensuring that icons are not mistakenly transformed into formats
-like `<x-heroicon-o-server-stack-stack />`. It also supports the new `outline` and `solid` variants, so you can easily
-update to the new syntax, such as `<x-heroicon-o-server />` and `<x-heroicon-s-server />`.
+It's built to prevent overlapping or incorrect updates, ensuring that icons are not mistakenly transformed into something
+like `<x-heroicon-o-server-stack-stack />`.
 
 ## Installation
 
