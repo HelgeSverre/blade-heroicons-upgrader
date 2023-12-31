@@ -70,24 +70,15 @@ class UpgradeIcons extends Command
             }
 
             foreach (self::$variants as $variant) {
-
-                // Define a custom boundary for the regex.
-                // This boundary ensures that the icon name is preceded and followed by specific characters (whitespace, quote, slash) or line boundaries.
-                // Example:
-                // - Matches: " heroicon-o-adjustments ", "'heroicon-s-adjustments'", "/heroicon-m-adjustments/"
-                // - Does not match: "extra-heroicon-o-adjustments", "heroicon-o-adjustments-plus"
+                // Existing pattern for heroicon
                 $boundary = "(?<=\s|'|\"|/|^)";
                 $endBoundary = "(?=\s|'|\"|/|$)";
-
-                // Construct the regex pattern to match the old icon name with the variant and custom boundary
                 $pattern = '#'.$boundary.'heroicon-'.$variant.'-'.preg_quote($oldName, '#').$endBoundary.'#';
+                $contents = $this->replacePattern($contents, $pattern, "heroicon-{$variant}-{$newName}", $replaced);
 
-                $matched = Regex::matchAll($pattern, $contents)->results();
-                $replaced += count($matched);
-
-                $replaceWith = "heroicon-{$variant}-{$newName}";
-
-                $contents = Regex::replace($pattern, $replaceWith, $contents)->result();
+                // New pattern for Blade component syntax
+                $bladePattern = "#<x-heroicon-{$variant}-".preg_quote($oldName, '#')."([\\s>])#";
+                $contents = $this->replacePattern($contents, $bladePattern, "<x-heroicon-{$variant}-{$newName}$1", $replaced);
             }
         }
 
@@ -98,6 +89,14 @@ class UpgradeIcons extends Command
         file_put_contents($file, $contents);
 
         return $replaced;
+    }
+
+    protected function replacePattern(string $contents, string $pattern, string $replacement, int &$replacedCount): string
+    {
+        $matched = Regex::matchAll($pattern, $contents)->results();
+        $replacedCount += count($matched);
+
+        return Regex::replace($pattern, $replacement, $contents)->result();
     }
 
     protected function getIconsMap(): array
