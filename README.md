@@ -72,9 +72,6 @@ You can also do a dry run to see how many replacements in which files will be do
 php artisan blade-heroicons-upgrader:upgrade --dry
 ```
 
-Adding an FAQ section to your README is a great way to address common questions and concerns. Here's how you can
-incorporate the FAQ with the questions and answers you provided:
-
 ## FAQ
 
 **Q: Does it work for other icon sets?**  
