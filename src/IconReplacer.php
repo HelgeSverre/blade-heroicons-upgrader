@@ -9,62 +9,97 @@ use Spatie\Regex\Regex;
 
 class IconReplacer
 {
+    protected ?string $filePath = null;
+
     public static array $variants = ['o', 's', 'm'];
 
-    public function replaceIcons(string $contents, array $iconsMap): Result
+    public function __construct(protected array $iconMap = [])
+    {
+
+    }
+
+    public function inFile($sampleFile): static
+    {
+        $this->filePath = $sampleFile;
+
+        return $this;
+    }
+
+    public function withIconMap(array $iconsMap): static
+    {
+        $this->iconMap = $iconsMap;
+
+        return $this;
+    }
+
+    public function replaceIcons(string $contents): Result
     {
         $newContents = $contents;
         $replacements = [];
 
-        foreach ($iconsMap as $oldName => $newName) {
+        foreach ($this->iconMap as $oldName => $newName) {
             if ($oldName === $newName) {
                 continue;
             }
 
             foreach (self::$variants as $variant) {
 
-                $pattern = '#(?<=\s|\'|"|<|\/)(?<icon>(?<prefix>x-)?heroicon-' . $variant . '-' . $oldName . ')(?=\s|\'|"|>|\/)#m';
+                $pattern = implode('', [
+                    '#(?<=\s|\'|"|<|\/)',   // Lookbehind for separators
+                    '(?<icon>',             // Start named group 'icon'
+                    '(?<prefix>x-)?',       // Named group 'prefix' for optional 'x-'
+                    'heroicon-',            // Literal string 'heroicon-'
+                    $variant,               // Variant part of the icon name
+                    '-',                    // Literal hyphen
+                    $oldName,               // Old name of the icon
+                    ')',                    // End named group 'icon'
+                    '(?=\s|\'|"|>|\/)#m',    // Lookahead for separators and end of pattern with multiline flag
+                ]);
 
                 $positions = $this->findMatchPositions($pattern, $newContents);
 
-                $result = Regex::matchAll($pattern, $newContents);
-
-                if (!$result->hasMatch()) {
-                    continue;
-                }
-
-                foreach ($result->results() as $match) {
-
-
-                    dd($match);
+                foreach ($positions as $position) {
 
                     // Add to replacements array for tracking
                     $replacements[] = new Replacement(
                         oldIcon: "heroicon-{$variant}-{$oldName}",
                         newIcon: "heroicon-{$variant}-{$newName}",
-                        line: 0, // You might want to capture the actual line and column if possible
-                        column: 0,
+                        pattern: $pattern,
+                        line: $position['line'],
+                        column: $position['column'],
+                        filePath: $this->filePath,
                     );
-
-                    $result = Regex::replace($pattern, function (MatchResult $result) use ($newName, $variant) {
-
-                        $prefix = $result->groupOr('prefix', '');
-                        $replacement = $prefix . "heroicon-{$variant}-{$newName}";
-
-                        return str_replace($result->group('icon'), $replacement, $result->result());
-
-                    }, $newContents);
-
-                    $newContents = $result->result();
-
                 }
             }
         }
 
+        foreach ($replacements as $replacement) {
+            $newContents = Regex::replace(
+                pattern: $replacement->pattern,
+                replacement: fn (MatchResult $result) => $result->groupOr('prefix', '').$replacement->newIcon,
+                subject: $newContents
+            )->result();
+        }
+
+        $adjustedReplacements = array_reduce($replacements, function ($carry, $replacement) {
+            $newPosition = $replacement->column + strlen($replacement->newIcon) - strlen($replacement->oldIcon);
+            $carry[] = new Replacement(
+                oldIcon: $replacement->oldIcon,
+                newIcon: $replacement->newIcon,
+                pattern: $replacement->pattern,
+                line: $replacement->line,
+                column: $newPosition,
+                filePath: $replacement->filePath
+            );
+
+            return $carry;
+        }, []);
+
         return new Result(
             new: $newContents,
             old: $contents,
-            replacements: $replacements
+            replacements: $replacements,
+            adjustedReplacements: $adjustedReplacements,
         );
     }
 
@@ -73,12 +108,26 @@ class IconReplacer
         $positions = [];
 
         if (preg_match_all($pattern, $contents, $matches, PREG_OFFSET_CAPTURE)) {
-            foreach ($matches["icon"] as $match) {
+
+            foreach ($matches['icon'] as $match) {
                 $offsetIntoContent = $match[1];
 
-                $column = strlen(substr($contents, 0, $offsetIntoContent)) - strlen(str_replace("\n", '', substr($contents, 0, $offsetIntoContent)));
+                // Find the last newline character before the match
+                $lastNewLinePos = strrpos(substr($contents, 0, $offsetIntoContent), "\n");
+
+                // Column is the distance from the last newline to the match start
+                // If there's no newline, it starts from the beginning of the contents
+                $column = $lastNewLinePos !== false ?
+                    $offsetIntoContent - $lastNewLinePos - 1 :
+                    $offsetIntoContent;
+
                 $line = substr_count(substr($contents, 0, $offsetIntoContent), "\n") + 1;
 
+                $positions[] = [
+                    'line' => $line,
+                    'column' => $column,
+                    'icon' => $match[0],
+                ];
             }
         }
 

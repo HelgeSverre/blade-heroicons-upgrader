@@ -29,7 +29,9 @@ class UpgradeIcons extends Command
         $totalReplaced = 0;
         $totalFilesWithReplacements = 0;
 
-        $iconsMap = config('blade-heroicons-upgrader.replacements');
+        $iconReplacer = new IconReplacer(
+            config('blade-heroicons-upgrader.replacements')
+        );
 
         foreach ($paths as $path) {
             $realPath = realpath($path);
@@ -42,14 +44,12 @@ class UpgradeIcons extends Command
 
             $files = File::isFile($realPath) ? [$realPath] : File::allFiles($realPath);
 
-            $iconReplacer = new IconReplacer();
-
             foreach ($files as $file) {
                 $this->info("{$file}");
 
                 $contents = File::get($file);
 
-                $info = $iconReplacer->replaceIcons($contents, $iconsMap);
+                $info = $iconReplacer->inFile($file)->replaceIcons($contents);
 
                 if (! $this->option('dry')) {
                     File::put($file, $info->new);

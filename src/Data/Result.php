@@ -11,6 +11,7 @@ class Result
         public readonly string $new,
         public readonly string $old,
         public readonly array $replacements,
+        public readonly array $adjustedReplacements,
 
     ) {
 
