@@ -19,13 +19,11 @@ it('correctly upgrades icons in files', function ($sampleFile, $expectedReplacem
     expect($result->count())->toBe($expectedReplacement);
 
 })->with([
-
     ['./tests/Samples/MenuComposer.php.txt', 1],
     ['./tests/Samples/order-form.blade.php.txt', 7],
     ['./tests/Samples/settings-page.blade.php.txt', 4],
     ['./tests/Samples/tall-toasts-icon.blade.php.txt', 2],
     ['./tests/Samples/watcher.blade.php.txt', 2],
-
 ]);
 
 it('can run the command on files and get the same result', function ($sampleFile, $expectedReplacement) {
@@ -50,29 +48,5 @@ it('can run the command on files and get the same result', function ($sampleFile
     ['./tests/Samples/settings-page.blade.php.txt', 4],
     ['./tests/Samples/tall-toasts-icon.blade.php.txt', 2],
     ['./tests/Samples/watcher.blade.php.txt', 2],
-
-]);
-
-it('can run the command on files and get the same result for realz', function ($sampleFile, $expectedReplacement) {
-
-    $buffer = new BufferedOutput();
-
-    $result = $this->app[Kernel::class]->call('blade-heroicons-upgrader:upgrade',
-        ['paths' => $sampleFile],
-        $buffer
-    );
-
-    $output = $buffer->fetch();
-    dump($output);
-
-    expect($output)->toContain("Replaced $expectedReplacement icons across 1 files.");
-
-})->with([
-
-    ['./tests/Hot/MenuComposer.php.txt', 1],
-    ['./tests/Hot/order-form.blade.php.txt', 7],
-    ['./tests/Hot/settings-page.blade.php.txt', 4],
-    ['./tests/Hot/tall-toasts-icon.blade.php.txt', 2],
-    ['./tests/Hot/watcher.blade.php.txt', 2],
 
 ]);
