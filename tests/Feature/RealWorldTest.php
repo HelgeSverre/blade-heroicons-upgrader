@@ -35,11 +35,7 @@ it('can run the command on files and get the same result', function ($sampleFile
         $buffer
 
     );
-
-    $output = $buffer->fetch();
-    dump($output);
-
-    expect($output)->toContain("Replaced $expectedReplacement icons across 1 files.");
+    expect($buffer->fetch())->toContain("Replaced $expectedReplacement icons across 1 files.");
 
 })->with([
 
