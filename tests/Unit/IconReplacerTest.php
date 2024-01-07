@@ -2,10 +2,6 @@
 
 use HelgeSverre\BladeHeroiconsUpgrader\IconReplacer;
 
-it('runs the tests', function () {
-    expect(true)->toBeTrue();
-});
-
 // Test for Blade component syntax
 it('replaces heroicons in specific scenarios', function ($originalContent, $expectedContent) {
     $replacer = new IconReplacer();
