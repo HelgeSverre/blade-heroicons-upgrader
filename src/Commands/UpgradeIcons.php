@@ -57,7 +57,7 @@ class UpgradeIcons extends Command
 
                 $totalReplaced += $info->count();
 
-                if ($info->isEmpty()) {
+                if ($info->isNotEmpty()) {
                     $totalFilesWithReplacements++;
                     $this->comment("> Replaced {$info->count()} icons.\n");
                 }
