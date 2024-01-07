@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "0b74e8cb7ddea392e546feb173024375",
+    "content-hash": "0dc791bd48f62214132f0471b6dfb4cb",
     "packages": [
         {
             "name": "brick/math",
@@ -6758,26 +6758,26 @@
         },
         {
             "name": "pestphp/pest-plugin-arch",
-            "version": "v2.5.0",
+            "version": "v2.6.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/pestphp/pest-plugin-arch.git",
-                "reference": "8d850753f0192c3fa1ed6c6cac6f76b718d131db"
+                "reference": "0741696072b5db5989d63013a7b3e83358f4dfcf"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pestphp/pest-plugin-arch/zipball/8d850753f0192c3fa1ed6c6cac6f76b718d131db",
-                "reference": "8d850753f0192c3fa1ed6c6cac6f76b718d131db",
+                "url": "https://api.github.com/repos/pestphp/pest-plugin-arch/zipball/0741696072b5db5989d63013a7b3e83358f4dfcf",
+                "reference": "0741696072b5db5989d63013a7b3e83358f4dfcf",
                 "shasum": ""
             },
             "require": {
-                "nunomaduro/collision": "^7.10.0|^8.0.0",
+                "nunomaduro/collision": "^7.10.0|^8.0.1",
                 "pestphp/pest-plugin": "^2.1.1",
                 "php": "^8.1",
-                "ta-tikoma/phpunit-architecture-test": "^0.7.5"
+                "ta-tikoma/phpunit-architecture-test": "^0.8.0"
             },
             "require-dev": {
-                "pestphp/pest": "^2.27.0",
+                "pestphp/pest": "^2.30.0",
                 "pestphp/pest-dev-tools": "^2.16.0"
             },
             "type": "library",
@@ -6813,7 +6813,7 @@
                 "unit"
             ],
             "support": {
-                "source": "https://github.com/pestphp/pest-plugin-arch/tree/v2.5.0"
+                "source": "https://github.com/pestphp/pest-plugin-arch/tree/v2.6.0"
             },
             "funding": [
                 {
@@ -6825,7 +6825,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2023-12-05T19:01:10+00:00"
+            "time": "2024-01-05T11:06:22+00:00"
         },
         {
             "name": "pestphp/pest-plugin-laravel",
@@ -7308,16 +7308,16 @@
         },
         {
             "name": "phpstan/phpdoc-parser",
-            "version": "1.24.5",
+            "version": "1.25.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpstan/phpdoc-parser.git",
-                "reference": "fedf211ff14ec8381c9bf5714e33a7a552dd1acc"
+                "reference": "bd84b629c8de41aa2ae82c067c955e06f1b00240"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpdoc-parser/zipball/fedf211ff14ec8381c9bf5714e33a7a552dd1acc",
-                "reference": "fedf211ff14ec8381c9bf5714e33a7a552dd1acc",
+                "url": "https://api.github.com/repos/phpstan/phpdoc-parser/zipball/bd84b629c8de41aa2ae82c067c955e06f1b00240",
+                "reference": "bd84b629c8de41aa2ae82c067c955e06f1b00240",
                 "shasum": ""
             },
             "require": {
@@ -7349,9 +7349,9 @@
             "description": "PHPDoc parser with support for nullable, intersection and generic types",
             "support": {
                 "issues": "https://github.com/phpstan/phpdoc-parser/issues",
-                "source": "https://github.com/phpstan/phpdoc-parser/tree/1.24.5"
+                "source": "https://github.com/phpstan/phpdoc-parser/tree/1.25.0"
             },
-            "time": "2023-12-16T09:33:33+00:00"
+            "time": "2024-01-04T17:06:16+00:00"
         },
         {
             "name": "phpstan/phpstan",
@@ -9629,28 +9629,28 @@
         },
         {
             "name": "ta-tikoma/phpunit-architecture-test",
-            "version": "0.7.6",
+            "version": "0.8.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/ta-tikoma/phpunit-architecture-test.git",
-                "reference": "a252cd9488fd62f3c8c6cafa303b1b96e9df24e0"
+                "reference": "89f0dea1cb0f0d5744d3ec1764a286af5e006636"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ta-tikoma/phpunit-architecture-test/zipball/a252cd9488fd62f3c8c6cafa303b1b96e9df24e0",
-                "reference": "a252cd9488fd62f3c8c6cafa303b1b96e9df24e0",
+                "url": "https://api.github.com/repos/ta-tikoma/phpunit-architecture-test/zipball/89f0dea1cb0f0d5744d3ec1764a286af5e006636",
+                "reference": "89f0dea1cb0f0d5744d3ec1764a286af5e006636",
                 "shasum": ""
             },
             "require": {
-                "nikic/php-parser": "^4.18.0",
+                "nikic/php-parser": "^4.18.0 || ^5.0.0",
                 "php": "^8.1.0",
                 "phpdocumentor/reflection-docblock": "^5.3.0",
-                "phpunit/phpunit": "^10.5.5",
+                "phpunit/phpunit": "^10.5.5  || ^11.0.0",
                 "symfony/finder": "^6.4.0 || ^7.0.0"
             },
             "require-dev": {
                 "laravel/pint": "^1.13.7",
-                "phpstan/phpstan": "^1.10.50"
+                "phpstan/phpstan": "^1.10.52"
             },
             "type": "library",
             "autoload": {
@@ -9682,9 +9682,9 @@
             ],
             "support": {
                 "issues": "https://github.com/ta-tikoma/phpunit-architecture-test/issues",
-                "source": "https://github.com/ta-tikoma/phpunit-architecture-test/tree/0.7.6"
+                "source": "https://github.com/ta-tikoma/phpunit-architecture-test/tree/0.8.4"
             },
-            "time": "2023-12-29T13:14:58+00:00"
+            "time": "2024-01-05T14:10:56+00:00"
         },
         {
             "name": "theseer/tokenizer",

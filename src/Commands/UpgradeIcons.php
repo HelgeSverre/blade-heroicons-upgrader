@@ -2,10 +2,12 @@
 
 namespace HelgeSverre\BladeHeroiconsUpgrader\Commands;
 
+use HelgeSverre\BladeHeroiconsUpgrader\IconReplacer;
 use Illuminate\Console\Command;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\File;
-use Spatie\Regex\Regex;
+
+use function config;
 
 class UpgradeIcons extends Command
 {
@@ -27,6 +29,8 @@ class UpgradeIcons extends Command
         $totalReplaced = 0;
         $totalFilesWithReplacements = 0;
 
+        $iconsMap = config('blade-heroicons-upgrader.replacements');
+
         foreach ($paths as $path) {
             $realPath = realpath($path);
 
@@ -38,18 +42,24 @@ class UpgradeIcons extends Command
 
             $files = File::isFile($realPath) ? [$realPath] : File::allFiles($realPath);
 
-            $iconsMap = $this->getIconsMap();
+            $iconReplacer = new IconReplacer();
 
             foreach ($files as $file) {
                 $this->info("{$file}");
 
-                $count = $this->replaceIconsInFile($file, $iconsMap);
+                $contents = File::get($file);
 
-                $totalReplaced += $count;
+                $info = $iconReplacer->replaceIcons($contents, $iconsMap);
 
-                if ($count) {
+                if (! $this->option('dry')) {
+                    File::put($file, $info->new);
+                }
+
+                $totalReplaced += $info->count();
+
+                if ($info->isEmpty()) {
                     $totalFilesWithReplacements++;
-                    $this->comment("> Replaced {$count} icons.\n");
+                    $this->comment("> Replaced {$info->count()} icons.\n");
                 }
 
             }
@@ -57,51 +67,5 @@ class UpgradeIcons extends Command
         }
 
         $this->comment("\n\nDONE: Replaced {$totalReplaced} icons across {$totalFilesWithReplacements} files.");
-    }
-
-    protected function replaceIconsInFile(string $file, array $iconsMap): int
-    {
-        $replaced = 0;
-        $contents = file_get_contents($file);
-
-        foreach ($iconsMap as $oldName => $newName) {
-            if ($oldName === $newName) {
-                continue;
-            }
-
-            foreach (self::$variants as $variant) {
-
-                // Define a custom boundary for the regex.
-                // This boundary ensures that the icon name is preceded and followed by specific characters (whitespace, quote, slash) or line boundaries.
-                // Example:
-                // - Matches: " heroicon-o-adjustments ", "'heroicon-s-adjustments'", "/heroicon-m-adjustments/"
-                // - Does not match: "extra-heroicon-o-adjustments", "heroicon-o-adjustments-plus"
-                $boundary = "(?<=\s|'|\"|/|^)";
-                $endBoundary = "(?=\s|'|\"|/|$)";
-
-                // Construct the regex pattern to match the old icon name with the variant and custom boundary
-                $pattern = '#'.$boundary.'heroicon-'.$variant.'-'.preg_quote($oldName, '#').$endBoundary.'#';
-
-                $matched = Regex::matchAll($pattern, $contents)->results();
-                $replaced += count($matched);
-
-                $replaceWith = "heroicon-{$variant}-{$newName}";
-
-                $contents = Regex::replace($pattern, $replaceWith, $contents)->result();
-            }
-        }
-
-        if ($this->option('dry')) {
-            return $replaced;
-        }
-
-        file_put_contents($file, $contents);
-
-        return $replaced;
-    }
-
-    protected function getIconsMap(): array
-    {
-        return config('blade-heroicons-upgrader.replacements');
     }
 }

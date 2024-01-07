@@ -1,0 +1,19 @@
+<template x-if="toast.type==='debug'">
+    @svg("heroicon-o-terminal", "h-6 w-6 text-gray-500")
+</template>
+
+<template x-if="toast.type==='info'">
+    @svg("heroicon-o-information-circle", "h-6 w-6 text-blue-400")
+</template>
+
+<template x-if="toast.type==='success'">
+    @svg("heroicon-o-check-circle", "h-6 w-6 text-navy-500")
+</template>
+
+<template x-if="toast.type==='warning'">
+    @svg("heroicon-o-exclamation-circle", "h-6 w-6 text-orange-400")
+</template>
+
+<template x-if="toast.type==='danger'">
+    @svg("heroicon-o-exclamation", "h-6 w-6 text-red-400")
+</template>
