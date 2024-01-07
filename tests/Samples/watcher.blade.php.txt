@@ -1,0 +1,11 @@
+@if($watchable->isWatched())
+    <button wire:click="unwatch" type="button" title="{{ $unwatchText }}">
+        @svg("heroicon-s-thumb-down", "h-$size w-$size text-gray-700")
+    </button>
+@else
+    <button
+        wire:click="watch" type="button" title="{{ $watchText }}">
+        @svg("heroicon-o-thumb-down", "h-$size w-$size text-gray-700")
+    </button>
+@endif
+

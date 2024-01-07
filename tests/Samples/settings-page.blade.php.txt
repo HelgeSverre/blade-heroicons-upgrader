@@ -1,0 +1,74 @@
+@php
+
+    $activeLink = "bg-white text-navy-600 hover:bg-white dark:text-white";
+    $defaultLink = "text-gray-600 hover:text-gray-900 hover:bg-gray-50";
+
+    $activeIcon = "text-navy-500 dark:text-white";
+    $defaultIcon = "text-gray-400 group-hover:text-gray-500";
+
+@endphp
+
+
+<div class="lg:grid lg:grid-cols-12 lg:gap-x-5">
+
+    <aside class="pb-6 px-2 sm:px-6 lg:py-0 lg:px-0 lg:col-span-3">
+        <nav class="space-y-1">
+
+            <a
+                href="{{ route("profile") }}"
+                class="{{ request()->routeIs("profile") ? $activeLink : $defaultLink }} group rounded-md px-3 py-2 flex items-center text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-100 focus-visible:ring-navy-500">
+                <x-heroicon-o-user-circle class="{{ request()->routeIs('profile') ? $activeIcon : $defaultIcon }} flex-shrink-0 -ml-1 mr-3 h-6 w-6" />
+                <span class="truncate">Min Profil</span>
+            </a>
+
+            @role("superadmin|admin")
+            <a
+                href="{{ route("company.index") }}"
+                class="{{ request()->routeIs("company.*") ? $activeLink : $defaultLink }} group rounded-md px-3 py-2 flex items-center text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-100 focus-visible:ring-navy-500">
+                <x-heroicon-o-adjustments class="{{ request()->routeIs('company.*') ? $activeIcon : $defaultIcon }} flex-shrink-0 -ml-1 mr-3 h-6 w-6" />
+                <span class="truncate">Firma</span>
+            </a>
+
+            <a
+                href="{{ route("serviceObjectType.index") }}"
+                class="{{ request()->routeIs("serviceObjectType.*") ? $activeLink : $defaultLink }} group rounded-md px-3 py-2 flex items-center text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-100 focus-visible:ring-navy-500">
+                <x-heroicon-o-duplicate class="{{ request()->routeIs('serviceObjectType.*') ? $activeIcon : $defaultIcon }} flex-shrink-0 -ml-1 mr-3 h-6 w-6" />
+                <span class="truncate">Arbeidsobjektmaler</span>
+            </a>
+
+            <a
+                href="{{ route("invoice-settings.show") }}"
+                class="{{ request()->routeIs("invoice-settings.*") ? $activeLink : $defaultLink }} group rounded-md px-3 py-2 flex items-center text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-100 focus-visible:ring-navy-500">
+                <x-heroicon-o-cash class="{{ request()->routeIs('invoice-settings.*') ? $activeIcon : $defaultIcon }} flex-shrink-0 -ml-1 mr-3 h-6 w-6" />
+                <span class="truncate">Fakturainnstillinger</span>
+            </a>
+
+
+            @if(config("example.flags.integration_page"))
+                <a
+                    href="{{ route("integration.index") }}"
+                    class="{{ request()->routeIs("integration.*") ? $activeLink : $defaultLink }} group rounded-md px-3 py-2 flex items-center text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-100 focus-visible:ring-navy-500">
+                    <x-heroicon-o-view-grid-add class="{{ request()->routeIs('integration.*') ? $activeIcon : $defaultIcon }} flex-shrink-0 -ml-1 mr-3 h-6 w-6" />
+                    <span class="truncate">Integrasjoner</span>
+                </a>
+            @endif
+
+
+            <a
+                href="{{ route("user.index") }}"
+                class="{{ request()->routeIs("user.*") ? $activeLink : $defaultLink }} group rounded-md px-3 py-2 flex items-center text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-100 focus-visible:ring-navy-500">
+                <x-heroicon-o-users class="{{ request()->routeIs('user.*') ? $activeIcon : $defaultIcon }} flex-shrink-0 -ml-1 mr-3 h-6 w-6" />
+                <span class="truncate">Ansatte</span>
+            </a>
+
+
+            @endrole
+
+        </nav>
+    </aside>
+
+    <div class="space-y-6 sm:px-6 lg:px-0 lg:col-span-9">
+        {{ $slot }}
+    </div>
+</div>
+

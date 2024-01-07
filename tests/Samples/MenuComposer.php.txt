@@ -1,0 +1,258 @@
+<?php
+
+namespace App\Composers;
+
+use App\Enums\Module;
+use App\Enums\Permission;
+use App\Models\Company;
+use Illuminate\Support\Collection;
+use Illuminate\View\View;
+
+class MenuComposer
+{
+    /**
+     * Bind data to the view.
+     *
+     *
+     * @return void
+     */
+    public function compose(View $view)
+    {
+        $view->with(
+            key: 'mainMenu',
+            value: $this->mainMenu()->where('visible')
+        );
+
+        $view->with(
+            key: 'secondaryMenu',
+            value: $this->secondaryMenu()->where('visible')
+        );
+
+        $view->with(
+            key: 'profileMenu',
+            value: $this->profileMenu()->where('visible')
+        );
+    }
+
+    protected function mainMenu(): Collection
+    {
+        return collect([
+            [
+                'url' => route('dashboard'),
+                'label' => 'Dashboard',
+                'icon' => 'heroicon-o-home',
+                'active' => request()->routeIs('dashboard'),
+                'visible' => true,
+            ],
+            [
+                'url' => route('mypage'),
+                'label' => 'Min Side',
+                'icon' => 'heroicon-o-squares-2x2',
+                'active' => request()->routeIs('mypage'),
+                'visible' => app()->environment('local'),
+            ],
+            [
+                'label' => 'Salg',
+                'icon' => 'heroicon-o-briefcase',
+                'visible' => (Company::current()->hasModule(Module::prospector) && Permission::viewProspector->isAllowed())
+                    || (Company::current()->hasModule(Module::leads) && Permission::viewLeads->isAllowed())
+                    || (Company::current()->hasModule(Module::sales) && Permission::viewSales->isAllowed()),
+                'active' => request()->routeIs(['prospector.*', 'leads.*', 'sales.*']),
+                'items' => [
+                    [
+                        'url' => route('prospector.index'),
+                        'label' => 'Prospektering',
+                        'icon' => 'heroicon-o-magnifying-glass-circle',
+                        'active' => request()->routeIs('prospector.*'),
+                        'visible' => Company::current()->hasModule(Module::prospector) && Permission::viewProspector->isAllowed(),
+                    ],
+                    [
+                        'url' => route('leads.index'),
+                        'label' => 'Leads',
+                        'icon' => 'heroicon-o-funnel',
+                        'active' => request()->routeIs('leads.*'),
+                        'visible' => Company::current()->hasModule(Module::leads) && Permission::viewLeads->isAllowed(),
+                    ],
+                    [
+                        'url' => route('sales.index'),
+                        'label' => 'Salg',
+                        'icon' => 'heroicon-o-document-text',
+                        'active' => request()->routeIs('sales.*'),
+                        'visible' => Company::current()->hasModule(Module::sales) && Permission::viewSales->isAllowed(),
+                    ],
+                ],
+            ],
+
+            [
+                'url' => route('customers.index'),
+                'label' => 'Kunder',
+                'icon' => 'heroicon-o-users',
+                'active' => request()->routeIs('customers.*'),
+                'visible' => Company::current()->hasModule(Module::customers) && Permission::viewCustomers->isAllowed(),
+            ],
+            [
+                'url' => route('case.index'),
+                'label' => 'Saksbehandling',
+                'icon' => 'heroicon-o-bars-4',
+                'active' => request()->routeIs('case.*'),
+                'visible' => Company::current()->hasModule(Module::supportCases) && Permission::viewSupportCases->isAllowed(),
+            ],
+            [
+                'url' => route('subscriptions.index'),
+                'label' => 'Abonnementer',
+                'icon' => 'heroicon-o-arrow-path',
+                'active' => request()->routeIs('subscriptions.*'),
+                'visible' => Company::current()->hasModule(Module::subscriptions) && Permission::viewSubscriptions->isAllowed(),
+            ],
+            [
+                'url' => route('archive.index'),
+                'label' => 'Filarkiv',
+                'icon' => 'heroicon-o-folder-open',
+                'active' => request()->routeIs('archive.*'),
+                'visible' => Company::current()->hasModule(Module::fileArchive) && Permission::viewFileArchive->isAllowed(),
+            ],
+            [
+                'url' => route('offer.index'),
+                'label' => 'Tilbud',
+                'icon' => 'heroicon-o-document-magnifying-glass',
+                'active' => request()->routeIs('offer.*'),
+                'visible' => Company::current()->hasModule(Module::offers) && Permission::viewOffers->isAllowed(),
+            ],
+            [
+                'url' => route('order.index'),
+                'label' => 'Ordrer',
+                'icon' => 'heroicon-o-document-text',
+                'active' => request()->routeIs('order.*'),
+                'visible' => Company::current()->hasModule(Module::orders) && Permission::viewOrders->isAllowed(),
+            ],
+            [
+                'url' => route('workorder.index'),
+                'label' => 'Arbeidsordre',
+                'icon' => 'heroicon-o-document-text',
+                'active' => request()->routeIs('workorder.*'),
+                'visible' => Company::current()->hasModule(Module::workOrders) && Permission::viewWorkOrders->isAllowed(),
+            ],
+            [
+                'url' => route('invoice.index'),
+                'label' => 'Fakturaer',
+                'icon' => 'heroicon-o-calculator',
+                'active' => request()->routeIs('invoice.*'),
+                'visible' => Company::current()->hasModule(Module::invoices) && Permission::viewInvoices->isAllowed(),
+            ],
+            [
+                'url' => route('product.index'),
+                'label' => 'Produkter',
+                'icon' => 'heroicon-o-question-mark-circle',
+                'active' => request()->routeIs('product.*'),
+                'visible' => Company::current()->hasModule(Module::products) && Permission::viewProducts->isAllowed(),
+            ],
+            [
+                'url' => route('checklist.index'),
+                'label' => 'Sjekklister',
+                'icon' => 'heroicon-o-clipboard-document-list',
+                'active' => request()->routeIs('checklist.*'),
+                'visible' => Company::current()->hasModule(Module::checklists) && Permission::viewChecklists->isAllowed(),
+            ],
+        ]);
+    }
+
+    protected function profileMenu(): Collection
+    {
+        return collect([
+            [
+                'url' => '/admin',
+                'label' => 'Superadmin',
+                'active' => false,
+                'visible' => auth()->user()->hasRole('superadmin'),
+            ],
+            [
+                'url' => route('company.index'),
+                'label' => 'Firma',
+                'active' => request()->routeIs('company.*'),
+                'visible' => $this->isAdmin(),
+            ],
+            [
+                'url' => route('integration.index'),
+                'label' => 'Integrasjoner',
+                'active' => request()->routeIs('integration.*'),
+                'visible' => $this->isAdmin(),
+            ],
+            [
+                'url' => route('user.index'),
+                'label' => 'Ansatte',
+                'active' => request()->routeIs('user.*'),
+                'visible' => $this->isAdmin(),
+            ],
+            [
+                'url' => route('timesheet.index'),
+                'label' => 'Timelister',
+                'active' => request()->routeIs('timesheet.*'),
+                'visible' => Company::current()->hasModule(Module::timesheet) && $this->isAdmin(),
+            ],
+            [
+                'url' => route('profile'),
+                'label' => 'Min Profil',
+                'active' => request()->routeIs('profile'),
+                'visible' => true,
+            ],
+            [
+                'url' => route('screen.overview', auth()->user()?->company->hashid),
+                'label' => 'Infoskjerm',
+                'active' => request()->routeIs('screen.overview'),
+                'visible' => Company::currfent()->hasModule(Module::infoScreen),
+            ],
+            [
+                'url' => route('logout'),
+                'label' => 'Logg ut',
+                'active' => false,
+                'visible' => true,
+            ],
+        ]);
+    }
+
+    protected function secondaryMenu(): Collection
+    {
+        return collect([
+            [
+                'url' => route('employee.calendar.index'),
+                'label' => 'Min Kalender',
+                'icon' => 'heroicon-o-calendar',
+                'active' => request()->routeIs('employee.calendar.*'),
+                'visible' => Company::current()->hasModule(Module::workOrders) && Permission::viewWorkOrders->isAllowed(),
+            ],
+            [
+                'url' => route('timesheet.index'),
+                'label' => 'Timelister',
+                'icon' => 'heroicon-o-thumb-down',
+                'active' => request()->routeIs('timesheet.*'),
+                'visible' => Company::current()->hasModule(Module::timesheet) && Permission::viewTimesheetEntries->isAllowed(),
+            ],
+            [
+                'url' => route('serviceObjectType.index'),
+                'label' => 'Arbeidsobjektmaler',
+                'icon' => 'heroicon-o-document-duplicate',
+                'active' => request()->routeIs('serviceObjectType.*'),
+                'visible' => Company::current()->hasModule(Module::serviceObjectTypes) && Permission::viewServiceObjectTypes->isAllowed(),
+            ],
+            [
+                'url' => route('serviceObject.index'),
+                'label' => 'Arbeidsobjekter',
+                'icon' => 'heroicon-o-squares-2x2',
+                'active' => request()->routeIs('serviceObject.*'),
+                'visible' => Company::current()->hasModule(Module::serviceObjects) && Permission::viewServiceObjects->isAllowed(),
+            ],
+            [
+                'url' => route('gamification.shop'),
+                'label' => 'Belønninger',
+                'icon' => 'heroicon-o-gift',
+                'active' => request()->routeIs('gamification.shop'),
+                'visible' => Company::current()->hasModule(Module::gamification) && Permission::viewGamificationShop->isAllowed(),
+            ],
+        ]);
+    }
+
+    protected function isAdmin(): bool
+    {
+        return auth()->user()->hasAnyRole(['superadmin', 'admin']);
+    }
+}

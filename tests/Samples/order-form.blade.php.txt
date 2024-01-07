@@ -1,0 +1,1154 @@
+<x-slot:title>
+    @if($this->order->isWorkOrder())
+        @if($this->order->exists)
+            Arbeidsordre {{ $this->order->display_number }}
+        @else
+            Ny arbeidsordre
+        @endif
+    @else
+        @if($this->order->exists)
+            Ordre {{ $this->order->display_number }}
+        @else
+            Ny ordre
+        @endif
+    @endif
+</x-slot:title>
+
+<x-layouts.page>
+    <x-slot:actions>
+        <x-layouts.breadcrumbs>
+            @if($this->order->isWorkOrder())
+                @if($this->order->exists)
+                    Arbeidsordre {{ $this->order->display_number }}
+                @else
+                    Ny arbeidsordre
+                @endif
+            @else
+                @if($this->order->exists)
+                    Ordre {{ $this->order->display_number }}
+                @else
+                    Ny ordre
+                @endif
+            @endif
+        </x-layouts.breadcrumbs>
+
+        <x-layouts.actions>
+            <x-slot:right>
+                @if($this->order->exists && $this->order->isWorkOrder())
+                    <x-reflow.action-button
+                        href=" {{ route('public.workorder.pdf', ['id' => $this->order->hashid,'format' => 'html','print' => true, 'close' => true]) }}"
+                        target="_blank"
+                        title="Skriv ut arbeidsseddel"
+                    >
+                        <x-heroicon-o-printer class="-my-0.5 h-5 w-5 text-gray-700" />
+                    </x-reflow.action-button>
+
+                    <!-- TODO: Temporary -->
+                    <x-reflow.action-button
+                        href=" {{ route('public.workorder.pdf', ['id' => $this->order->hashid,'format' => 'html']) }}"
+                        target="_blank"
+                        title="Forhåndsvis arbeidsseddel"
+                    >
+                        <x-heroicon-o-desktop-computer class="-my-0.5 h-5 w-5 text-gray-700" />
+                    </x-reflow.action-button>
+                @endif
+
+                <x-reflow.action-button wire:click="save">
+                    <span>Lagre</span>
+                    @if($this->order->isWorkOrder())
+                        <span class="hidden md:inline">&nbsp;arbeidsordre</span>
+                    @else
+                        <span class="hidden md:inline">&nbsp;ordre</span>
+                    @endif
+                </x-reflow.action-button>
+
+
+                <x-reflow.action-button
+                    wire:click="openSendForm('{{ \App\Enums\InvoiceType::cashInvoice->value }}')"
+                    title="Oppretter kontantfaktura, bruk dette om kunden betalte i kontanter eller med bankterminal"
+                >
+                    Kontantkjøp
+                </x-reflow.action-button>
+
+                <x-reflow.action-button
+                    variant="primary"
+                    wire:click="openSendForm('{{ \App\Enums\InvoiceType::invoice->value }}')"
+                >
+                    Opprett faktura
+                </x-reflow.action-button>
+
+
+                @if($this->order->exists)
+                    <div>
+                        <x-reflow.actions-dropdown :actions="$this->additionalActions" />
+                    </div>
+                @endif
+
+            </x-slot:right>
+        </x-layouts.actions>
+    </x-slot:actions>
+
+
+    <div>
+
+        <div class="grid gap-4 grid-cols-2 sm:grid-cols-6">
+            <x-panel class="col-span-3 mt-4">
+                <x-slot name="heading">
+                    @if($this->order->isWorkOrder())
+                        Arbeidsordre
+                    @else
+                        Ordre
+                    @endif
+                </x-slot>
+
+
+                <div>
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <div class="col-span-1">
+                            <x-input
+                                label="{{ $this->order->isWorkOrder()  ? 'Påbegynt dato' : 'Ordredato' }}"
+                                type="date"
+                                name="order.date"
+                                wire:model="order.date"
+                                required
+                            />
+                        </div>
+
+                        <div class="col-span-1">
+                            <x-input
+                                label="Antall dager forfall"
+                                type="number"
+                                name="order.due_days"
+                                :min="1"
+                                step="1"
+                                wire:model="order.due_days"
+                                required
+                            />
+                        </div>
+
+                        @if($this->order->isWorkOrder())
+                            <div class="col-span-2 sm:col-span-1">
+                                <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
+                                <select
+                                    id="status"
+                                    name="status"
+                                    wire:model="order.status_id"
+                                    class="bg-white text-gray-700 mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-navy-500 focus:border-navy-500 sm:text-sm rounded-md">
+                                    <option selected value="">-</option>
+                                    @foreach($this->statuses as $status)
+                                        <option
+                                            style="background-color: {{ $status->color }}; color: rgba(0,0,0, 0.85);"
+                                            value="{{ $status->id }}"
+                                        >
+                                            {{ $status->title }}
+                                        </option>
+                                    @endforeach
+                                </select>
+
+
+                                @error("order.status_id")
+                                <div class="text-red-500 text-md">{{ $message }}</div>
+                                @enderror
+
+                            </div>
+
+                            <div class="col-span-2 sm:col-span-1">
+                                <label for="responsible" class="block text-sm font-medium text-gray-700">Ansvarlig for arbeidet</label>
+                                <select
+                                    id="responsible"
+                                    name="responsible"
+                                    wire:model="order.responsible_id"
+                                    class="bg-white text-gray-700 mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-navy-500 focus:border-navy-500 sm:text-sm rounded-md">
+
+                                    <option selected>-</option>
+                                    @foreach(\App\Models\Company::current()->users as $user)
+                                        <option value="{{ $user->id }}">{{ $user->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            @if($this->order->exists)
+                                <div class="col-span-2 lg:col-span-1">
+                                    <livewire:time-tracker :trackable="$order" />
+                                </div>
+                            @endif
+                        @endif
+
+                        <div class="col-span-2">
+                            <x-textarea
+                                label="Beskrivelse"
+                                name="note"
+                                rows="7"
+                                wire:model.debounce="order.external_note"
+                            />
+                        </div>
+                    </div>
+                </div>
+            </x-panel>
+
+            <x-panel class="col-span-3 mt-4">
+                <x-slot name="heading">
+                    Kunde
+                </x-slot>
+
+                <div>
+                    <div class="mb-4">
+                        <livewire:customers.selector
+                            :customer="$order->customer_id"
+                            wire:key="customer-selector-{{  $order->customer_id }}"
+                        />
+
+                        @error("order.customer_id")
+                        <div class="text-red-500 text-xs mt-2">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    @if($this->order->isWorkOrder())
+                        <div class="mb-4">
+                            <livewire:service-objects.selector
+                                wire:key="object-selector-{{ $order->service_object_id }}"
+                                :service-object="$order->service_object_id"
+                                :customer="$order->customer_id"
+                            />
+                        </div>
+                    @endif
+
+                    <div class="mb-4">
+                        <x-input
+                            label="Vår Referanse"
+                            name="order.our_ref"
+                            wire:model.debounce="order.our_ref"
+                        />
+                    </div>
+                    <div class="mb-4">
+                        <x-input
+                            label="Deres Referanse"
+                            name="order.your_ref"
+                            wire:model.debounce="order.your_ref"
+                        />
+                    </div>
+                    <div>
+                        <x-input
+                            label="Ordre Referanse"
+                            name="order.order_ref"
+                            wire:model.debounce="order.order_ref"
+                        />
+                    </div>
+                </div>
+            </x-panel>
+
+        </div>
+
+
+        <x-panel class="mt-4">
+            <x-slot name="heading">
+                Varelinjer
+                <span class="text-gray-400 text-sm">({{ count($items) }})</span>
+            </x-slot>
+
+            <!-- Mobile -->
+            <div class="md:hidden">
+                <div class="space-y-4">
+                    @foreach($items as $index => $item)
+
+                        <div
+                            class="bg-gray-50 grid grid-cols-3 @error("items.$index.*") bg-red-100 @enderror"
+                            wire:key="mobile-order-item-{{ $index }}">
+
+                            <div class="col-span-full p-2 text-xs text-gray-500"
+                                 x-data="{
+                                open: false,
+                                shouldTrap () {
+                                    return this.open && {{ count($this->filteredProducts($item)) === 0 ? "false" : "true" }};
+                                }
+                            }">
+                                <span class="block text-xs font-medium text-gray-500 mb-1">Vare</span>
+
+                                @if($item["product_id"])
+                                    <div class="flex rounded-md">
+                                        <div class="relative flex items-stretch flex-grow focus-within:z-10">
+                                            <div
+                                                class="flex justify-start items-center w-full rounded-none rounded-l-md text-xs border border-gray-300 bg-gray-100  px-4 py-2">
+                                                <span>{{ $item["product_name"] }}</span>
+                                            </div>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            class="-ml-px relative inline-flex items-center space-x-2 p-2 border border-gray-300 text-xs font-medium rounded-r-md text-gray-700 bg-gray-50 hover:bg-gray-100 focus:outline-none focus:ring-1 focus:ring-navy-500 focus:border-navy-500"
+                                            wire:click="clearProduct({{ $index }})">
+
+                                            @svg("heroicon-s-x", "h-4 w-4 text-gray-400")
+                                        </button>
+                                    </div>
+                                @else
+                                    <div>
+                                        <div class="relative mt-1" x-trap="shouldTrap">
+                                            <input
+                                                wire:model="items.{{ $index }}.product_name"
+                                                x-on:input="open = true"
+                                                x-on:keyup.escape="open = false"
+                                                placeholder="Fritekst, eller søk etter produkt"
+                                                type="text"
+                                                class="w-full rounded-md border border-gray-300 bg-white py-2 pl-3 pr-8 shadow-sm focus:border-navy-500 focus:outline-none focus:ring-1 focus:ring-navy-500 text-xs @error("items.$index.product_name") border-red-500 @enderror"
+                                                role="combobox"
+                                                aria-controls="options"
+                                                aria-expanded="false"
+                                            >
+                                            <button
+                                                tabindex="-1"
+                                                type="button"
+                                                class="absolute inset-y-0 right-0 flex items-center rounded-r-md px-2 focus:outline-none"
+                                                x-on:click="open = !open"
+                                            >
+                                                @svg("heroicon-s-selector", "h-5 w-5 text-gray-400")
+                                            </button>
+
+                                            <ul
+                                                x-cloak
+                                                x-show="open || false"
+                                                x-on:click.outside="open = false"
+                                                tabindex="-1"
+                                                class="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none text-xs"
+                                                role="listbox">
+
+                                                @foreach($this->filteredProducts($item) as $product)
+                                                    <li
+                                                        class="relative select-none py-2 px-3 text-gray-900"
+                                                        role="option"
+                                                        tabindex="-1"
+                                                    >
+                                                        <button
+                                                            wire:click="selectProduct({{ $index }}, {{ $product->id }})"
+                                                            x-on:click="open = false"
+                                                            x-on:keyup.escape="open = false"
+                                                            type="button"
+                                                            class="w-full text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-100 focus-visible:ring-navy-500"
+                                                        >
+                                                            <span class="block truncate">
+                                                                {{ $product->name }}
+                                                            </span>
+                                                        </button>
+                                                    </li>
+                                                @endforeach
+                                            </ul>
+                                        </div>
+                                    </div>
+                                @endif
+                            </div>
+                            <div class="col-span-2 p-2 text-xs text-gray-500">
+                                <span class="block text-xs font-medium text-gray-500 mb-1">Enhetspris</span>
+
+                                <div class="relative rounded-md">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <span class="text-gray-500 text-xs">kr</span>
+                                    </div>
+                                    <input
+                                        wire:model="items.{{ $index }}.price"
+                                        type="number"
+                                        class="block w-full pl-7 text-xs border-gray-300 focus:ring-navy-500 focus:border-navy-500 rounded-md @error("items.$index.price") border-red-500 @enderror">
+                                </div>
+                            </div>
+                            <div class="p-2 text-xs text-gray-500">
+                                <span class="block text-xs font-medium text-gray-500 mb-1">Antall</span>
+                                <input
+                                    type="number"
+                                    value="1"
+                                    class="bg-white focus:ring-navy-500 focus:border-navy-500 block w-full text-xs border-gray-300 rounded-md @error("items.$index.amount") border-red-500 @enderror"
+                                    wire:model="items.{{ $index }}.amount"
+                                >
+                            </div>
+                            <div class="p-2 text-xs text-gray-500">
+                                <span class="block text-xs font-medium text-gray-500 mb-1">Rabatt %</span>
+                                <div class="relative rounded-md">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <span class="text-gray-500 text-xs">%</span>
+                                    </div>
+                                    <input
+                                        type="number"
+                                        class="bg-white block w-full pl-7 text-xs border-gray-300 focus:ring-navy-500 focus:border-navy-500 rounded-md @error("items.$index.discount") border-red-500 @enderror"
+                                        value="0"
+                                        wire:model="items.{{ $index }}.discount">
+                                </div>
+                            </div>
+                            <div class="p-2 text-xs text-gray-500">
+                                <span class="block text-xs font-medium text-gray-500 mb-1">MVA</span>
+                                @if($item["product_id"] == null)
+
+                                    <select
+                                        wire:model="items.{{ $index }}.product_vat_type"
+                                        class="w-full rounded-md border border-gray-300 bg-white py-2 pl-3 pr-8 shadow-sm focus:border-navy-500 focus:outline-none focus:ring-1 focus:ring-navy-500 text-xs @error("items.$index.tax") border-red-500 @enderror"
+                                    >
+                                        @foreach(\App\Enums\ProductVatType::cases() as $vatType)
+                                            <option value="{{ $vatType->value }}">
+                                                {{ $vatType->simpleLabel() }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+
+                                @else
+                                    <div class="relative rounded-md">
+                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <span class="text-gray-500 text-xs">%</span>
+                                        </div>
+                                        <input
+                                            type="number"
+                                            class="block w-full pl-7 text-xs border-gray-300 bg-gray-100 rounded-md @error("items.$index.tax") border-red-500 @enderror"
+                                            readonly
+                                            disabled
+                                            wire:model="items.{{ $index }}.tax"
+                                        >
+                                    </div>
+                                @endif
+                            </div>
+                            <div class="p-2 whitespace-nowrap ">
+                                <div class="block text-xs font-medium text-gray-500 mb-1">Total eksl mva</div>
+                                <div class="text-xs text-gray-500 tabular-nums">
+                                    kr {{ number_format($item["total_excl_tax"], 2, ".", " ") }}
+                                </div>
+                            </div>
+
+
+                            {{-- Product type, when freetext --}}
+                            @if($item["product_id"] == null && strlen($item["product_name"]) > 0)
+                                <div class="col-span-full p-2">
+                                    <span class="block text-xs font-medium text-gray-500 mb-1">Varetype</span>
+
+                                    <select
+                                        wire:model="items.{{ $index }}.product_type"
+                                        class="bg-white text-gray-700 w-full rounded-md border border-gray-300 bg-white text-gray-700 py-2 pl-3 pr-8 shadow-sm focus:border-navy-500 focus:outline-none focus:ring-1 focus:ring-navy-500 text-xs"
+                                    >
+                                        @foreach(\App\Enums\ProductType::cases() as $case)
+                                            <option value="{{ $case->value }}">{{ $case->label() }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                {{-- Income account, when freetext and "other" product type --}}
+                                @if(isset($item["product_type"]) && $item["product_type"] == \App\Enums\ProductType::other->value)
+                                    <div class="col-span-full p-2">
+                                        <span class="block text-xs font-medium text-gray-500 mb-1">Inntektskonto</span>
+                                        <select
+                                            wire:model="items.{{ $index }}.product_income_account"
+                                            class="bg-white text-gray-700 w-full rounded-md border border-gray-300 bg-white py-2 pl-3 pr-8 shadow-sm focus:border-navy-500 focus:outline-none focus:ring-1 focus:ring-navy-500 text-xs"
+                                        >
+
+                                            <option selected disabled value="">- Velg inntektskonto (Brukes ved eksport til Fiken)</option>
+
+                                            @foreach(\App\DataProvider\IncomeAccountCodes::withGroups() as $group)
+                                                <optgroup label="{{ $group["code"] }} - {{ $group["label"] }}">
+                                                    @foreach($group["accounts"] as $account)
+                                                        <option value="{{ $account["code"] }}">
+                                                            {{ $account["code"] }} - {{ $account["label"] }}
+                                                        </option>
+                                                    @endforeach
+                                                </optgroup>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                @endif
+                            @endif
+
+                            @if($item["show_comment"])
+                                <div class="col-span-full p-2" colspan="2">
+                                    <input
+                                        wire:model.debounce="items.{{ $index }}.comment"
+                                        type="text"
+                                        placeholder="Kommentar"
+                                        class="block bg-white w-full text-xs border-gray-300 focus:ring-navy-500 focus:border-navy-500 rounded-md @error("items.$index.price") border-red-500 @enderror">
+                                </div>
+
+                                <div class="col-span-2 p-2">
+                                    <button
+                                        type="button"
+                                        wire:click="hideCommentField({{ $index }})"
+                                        class="w-full text-left text-xs text-gray-400 hover:text-gray-600 focus:text-gray-600 hover:underline p-2 focus:border-navy-500 focus:outline-none focus:ring-1 focus:ring-navy-500">
+                                        Fjern kommentar
+                                    </button>
+                                </div>
+                            @endif
+
+
+                            {{-- Show comment button --}}
+                            @if($item["show_comment"] == false)
+                                <div class="col-span-2 p-2">
+                                    <button
+                                        type="button"
+                                        wire:click="showCommentField({{ $index }})"
+                                        class="w-full text-left text-xs text-navy-500 hover:text-navy-400 hover:underline p-2 focus:border-navy-500 focus:outline-none focus:ring-1 focus:ring-navy-500">
+                                        Legg til kommentar
+                                    </button>
+                                </div>
+                            @endif
+
+                            <div class="col-span-1 p-2 flex justify-end">
+                                <button
+                                    type="button"
+                                    class="w-auto text-right text-xs p-2 font-medium text-red-500 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+                                    wire:click="removeItem({{ $index }})"
+                                >
+                                    Fjern linje
+                                </button>
+                            </div>
+                        </div>
+
+                    @endforeach
+
+
+                    @error("items")
+                    <div class="bg-red-100">
+                        <div colspan="7" class="p-2 text-xs text-red-800 font-medium">
+                            <div class="flex items-center">
+                                @svg("heroicon-o-information-circle", "h-5 w-5 mr-2")
+                                <span>Du må ha med minst 1 varelinje</span>
+                            </div>
+                        </div>
+                    </div>
+                    @enderror
+                </div>
+                <div class="mt-6">
+                    <button
+                        type="button"
+                        class="inline-flex items-center px-4 py-2 rounded-md border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:z-10 focus:outline-none focus:ring-1 focus:ring-navy-500 focus:border-navy-500"
+                        wire:click="addItem"
+                    >
+                        Legg til varelinje
+                    </button>
+                </div>
+                <div class="mt-6 grid grid-cols-2">
+                    <!-- Summary Labels -->
+                    <div class="px-2 pt-4 text-sm text-gray-800 text-right font-medium">
+                        <div>Totalt eks MVA:</div>
+                        <div>MVA:</div>
+                        <div>Rabatt:</div>
+                        <div>Totalt inkl MVA:</div>
+                    </div>
+                    <!-- Summary Values -->
+                    <div class="px-2 pt-4 text-sm text-gray-500 text-right tabular-nums" colspan="2">
+                        <div>kr {{ number_format($this->totals["total_excl_tax"], 2, ".", " ") }},-</div>
+                        <div>kr {{ number_format($this->totals["total_tax"], 2, ".", " ") }},-</div>
+                        <div>kr {{ number_format(-$this->totals["total_discount"], 2, ".", " ") }},-</div>
+                        <div>kr {{ number_format($this->totals["total_incl_tax"], 2, ".", " ") }},-</div>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Desktop -->
+            <div class="hidden md:block">
+                <table class="w-full">
+                    <thead>
+                    <tr>
+                        <th class="p-2 text-xs text-left text-gray-400">Vare</th>
+                        <th class="p-2 text-xs text-left text-gray-400">Pris</th>
+                        <th class="p-2 text-xs text-left text-gray-400">Antall</th>
+                        <th class="p-2 text-xs text-left text-gray-400">Rabatt</th>
+                        <th class="p-2 text-xs text-left text-gray-400">MVA</th>
+                        <th class="p-2 text-xs text-left text-gray-400"></th>
+                        <th class="p-2 text-xs text-left text-gray-400"></th>
+                    </tr>
+                    </thead>
+
+                    @foreach($items as $index => $item)
+                        <tbody class="border-t border-gray-200">
+                        <tr>
+                            <td colspan="7" class="h-4">
+                                <!-- Spacer -->
+                            </td>
+                        </tr>
+                        </tbody>
+
+
+                        <tbody class="bg-white @error("items.$index.*") bg-red-100 @enderror">
+                        <tr
+                            wire:key="desktop-order-item-{{ $index }}">
+                            <td
+                                class="p-2 text-xs text-gray-500"
+                                x-data="{
+                                open: false,
+                                shouldTrap () {
+                                    return this.open && {{ count($this->filteredProducts($item)) === 0 ? "false" : "true" }};
+                                }
+                            }">
+
+                                @if($item["product_id"])
+                                    <div class="flex rounded-md">
+                                        <div class="relative flex items-start flex-grow focus-within:z-10">
+                                            <div
+                                                class="flex justify-start items-center w-full rounded-none rounded-l-md text-xs border border-gray-300 bg-gray-100 px-4 py-2">
+                                                {{ $item["product_name"] }}
+                                            </div>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            class="-ml-px relative inline-flex items-center space-x-2 p-2 border border-gray-300 text-xs font-medium rounded-r-md text-gray-700 bg-gray-50 hover:bg-gray-100 focus:outline-none focus:ring-1 focus:ring-navy-500 focus:border-navy-500"
+                                            wire:click="clearProduct({{ $index }})">
+
+                                            @svg("heroicon-s-x", "h-4 w-4 text-gray-400")
+                                        </button>
+                                    </div>
+                                @else
+                                    <div>
+                                        <div class="relative mt-1" x-trap="shouldTrap">
+                                            <input
+                                                wire:model="items.{{ $index }}.product_name"
+                                                x-on:input="open = true"
+                                                x-on:keyup.escape="open = false"
+                                                placeholder="Fritekst, eller søk etter produkt"
+                                                type="text"
+                                                class="w-full rounded-md border border-gray-300 bg-white py-2 pl-3 pr-8 shadow-sm focus:border-navy-500 focus:outline-none focus:ring-1 focus:ring-navy-500 text-xs @error("items.$index.product_name") border-red-500 @enderror"
+                                                role="combobox"
+                                                aria-controls="options"
+                                                aria-expanded="false"
+                                            >
+                                            <button
+                                                tabindex="-1"
+                                                type="button"
+                                                class="absolute inset-y-0 right-0 flex items-center rounded-r-md px-2 focus:outline-none"
+                                                x-on:click="open = !open"
+                                            >
+                                                @svg("heroicon-s-selector", "h-5 w-5 text-gray-400")
+                                            </button>
+
+                                            <ul
+                                                x-cloak
+                                                x-show="open || false"
+                                                x-on:click.outside="open = false"
+                                                tabindex="-1"
+                                                class="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none text-xs"
+                                                role="listbox">
+
+                                                @foreach($this->filteredProducts($item) as $product)
+                                                    <li
+                                                        class="relative select-none py-2 px-3 text-gray-900"
+                                                        role="option"
+                                                        tabindex="-1"
+                                                    >
+                                                        <button
+                                                            wire:click="selectProduct({{ $index }}, {{ $product->id }})"
+                                                            x-on:click="open = false"
+                                                            x-on:keyup.escape="open = false"
+                                                            type="button"
+                                                            class="w-full text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-100 focus-visible:ring-navy-500"
+                                                        >
+                                                            <span class="block truncate">
+                                                                {{ $product->name }}
+                                                            </span>
+                                                        </button>
+                                                    </li>
+                                                @endforeach
+                                            </ul>
+                                        </div>
+                                    </div>
+                                @endif
+                            </td>
+                            <td class="p-2 text-xs text-gray-500">
+                                <div class="relative rounded-md">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <span class="text-gray-500 text-xs">kr</span>
+                                    </div>
+                                    <input
+                                        wire:model="items.{{ $index }}.price"
+                                        type="number"
+                                        class="bg-white block w-full pl-7 text-xs border-gray-300 focus:ring-navy-500 focus:border-navy-500 rounded-md @error("items.$index.price") border-red-500 @enderror">
+                                </div>
+                            </td>
+                            <td class="p-2 text-xs text-gray-500">
+                                <input
+                                    type="number"
+                                    value="1"
+                                    class="bg-white focus:ring-navy-500 focus:border-navy-500 block w-full text-xs border-gray-300 rounded-md @error("items.$index.amount") border-red-500 @enderror"
+                                    wire:model="items.{{ $index }}.amount"
+                                >
+                            </td>
+                            <td class="p-2 text-xs text-gray-500">
+                                <div class="relative rounded-md">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <span class="text-gray-500 text-xs">%</span>
+                                    </div>
+                                    <input
+                                        type="number"
+                                        class="bg-white block w-full pl-7 text-xs border-gray-300 focus:ring-navy-500 focus:border-navy-500 rounded-md @error("items.$index.discount") border-red-500 @enderror"
+                                        value="0"
+                                        wire:model="items.{{ $index }}.discount">
+                                </div>
+                            </td>
+                            <td class="p-2 text-xs text-gray-500">
+
+
+                                @if($item["product_id"] == null)
+
+                                    <select
+                                        wire:model="items.{{ $index }}.product_vat_type"
+                                        class="w-full rounded-md border border-gray-300 bg-white py-2 pl-3 pr-8 shadow-sm focus:border-navy-500 focus:outline-none focus:ring-1 focus:ring-navy-500 text-xs @error("items.$index.tax") border-red-500 @enderror"
+                                    >
+                                        @foreach(\App\Enums\ProductVatType::cases() as $vatType)
+                                            <option value="{{ $vatType->value }}">
+                                                {{ $vatType->simpleLabel() }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+
+                                @else
+                                    <div class="relative rounded-md">
+                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <span class="text-gray-500 text-xs">%</span>
+                                        </div>
+                                        <input
+                                            type="number"
+                                            class="block w-full pl-7 text-xs border-gray-300 bg-gray-100 rounded-md @error("items.$index.tax") border-red-500 @enderror"
+                                            readonly
+                                            disabled
+                                            wire:model="items.{{ $index }}.tax"
+                                        >
+                                    </div>
+                                @endif
+                            </td>
+                            <td class="p-2 whitespace-nowrap text-xs text-gray-500 tabular-nums">
+                                kr {{ number_format($item["total_excl_tax"], 2, ".", " ") }},-
+                            </td>
+                            <td class="p-2 text-center">
+                                <button
+                                    type="button"
+                                    class="p-2 focus:outline-navy-500 border border-transparent text-gray-400 hover:text-gray-600 focus:text-gray-600"
+                                    wire:click="removeItem({{ $index }})"
+                                >
+                                    @svg("heroicon-s-trash", "h-5 w-5")
+                                </button>
+                            </td>
+                        </tr>
+
+                        {{-- Comment field --}}
+                        @if($item["show_comment"])
+                            <tr>
+                                <td class="p-2" colspan="2">
+                                    <input
+                                        wire:model.debounce="items.{{ $index }}.comment"
+                                        type="text"
+                                        placeholder="Kommentar"
+                                        class="bg-white text-gray-700 block w-full text-xs border-gray-300 focus:ring-navy-500 focus:border-navy-500 rounded-md @error("items.$index.price") border-red-500 @enderror">
+                                </td>
+                                {{-- Hide comment field button --}}
+                                <td class="p-2" colspan="5">
+                                    <button
+                                        type="button"
+                                        wire:click="hideCommentField({{ $index }})"
+                                        class="text-xs text-gray-400 hover:text-gray-600 focus:text-gray-600 hover:underline p-2 focus:border-navy-500 focus:outline-none focus:ring-1 focus:ring-navy-500">
+                                        Fjern kommentar
+                                    </button>
+                                </td>
+                            </tr>
+                        @endif
+
+                        <tr class="!border-transparent">
+                            @php
+                                $columnCounter = 7;
+                            @endphp
+                            {{-- Product type, when freetext --}}
+                            @if($item["product_id"] == null && strlen($item["product_name"]) > 0)
+                                @php($columnCounter--)
+                                <td class="p-2">
+                                    <select
+                                        wire:model="items.{{ $index }}.product_type"
+                                        class="bg-white text-gray-700 w-full rounded-md border border-gray-300 bg-white text-gray-700 py-2 pl-3 pr-8 shadow-sm focus:border-navy-500 focus:outline-none focus:ring-1 focus:ring-navy-500 text-xs"
+                                    >
+                                        @foreach(\App\Enums\ProductType::cases() as $case)
+                                            <option value="{{ $case->value }}">{{ $case->label() }}</option>
+                                        @endforeach
+                                    </select>
+                                </td>
+
+                                {{-- Income account, when freetext and "other" product type --}}
+                                @if(isset($item["product_type"]) && $item["product_type"] == \App\Enums\ProductType::other->value)
+                                    @php($columnCounter--)
+                                    <td class="p-2">
+                                        <select
+                                            wire:model="items.{{ $index }}.product_income_account"
+                                            class="bg-white text-gray-700 w-full rounded-md border border-gray-300 bg-white py-2 pl-3 pr-8 shadow-sm focus:border-navy-500 focus:outline-none focus:ring-1 focus:ring-navy-500 text-xs"
+                                        >
+
+                                            <option selected disabled value="">- Velg inntektskonto (Brukes ved eksport til Fiken)</option>
+
+                                            @foreach(\App\DataProvider\IncomeAccountCodes::withGroups() as $group)
+                                                <optgroup label="{{ $group["code"] }} - {{ $group["label"] }}">
+                                                    @foreach($group["accounts"] as $account)
+                                                        <option value="{{ $account["code"] }}">
+                                                            {{ $account["code"] }} - {{ $account["label"] }}
+                                                        </option>
+                                                    @endforeach
+                                                </optgroup>
+                                            @endforeach
+                                        </select>
+                                    </td>
+                                @endif
+                            @endif
+
+                            {{-- Show comment button --}}
+                            @if($item["show_comment"] == false)
+                                <td class="p-2" colspan="{{ $columnCounter }}">
+                                    <button
+                                        type="button"
+                                        wire:click="showCommentField({{ $index }})"
+                                        class="text-xs text-navy-500 hover:text-navy-400 hover:underline p-2 focus:border-navy-500 focus:outline-none focus:ring-1 focus:ring-navy-500">
+                                        + Legg til kommentar
+                                    </button>
+                                </td>
+                            @else
+                                <td colspan="{{ $columnCounter }}"></td>
+                            @endif
+                        </tr>
+
+                        </tbody>
+                        <tbody>
+                        <tr>
+                            <td colspan="7" class="h-4">
+                                <!-- Spacer -->
+                            </td>
+                        </tr>
+                        </tbody>
+                    @endforeach
+
+
+                    @error("items")
+                    <tr class="bg-red-100">
+                        <td colspan="7" class="p-2 text-xs text-red-800 font-medium">
+                            <div class="flex items-center">
+                                @svg("heroicon-o-information-circle", "h-5 w-5 mr-2")
+                                <span>Du må ha med minst 1 varelinje</span>
+                            </div>
+                        </td>
+                    </tr>
+                    @enderror
+
+                    <tfoot>
+                    <tr>
+                        <!-- Add new line item -->
+                        <td>
+                            <span class="p-2 py-4 w-56 relative z-0 inline-flex " x-data="{ open: false }">
+                                <button
+                                    type="button"
+                                    class="inline-flex items-center px-4 py-2 rounded-md border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:z-10 focus:outline-none focus:ring-1 focus:ring-navy-500 focus:border-navy-500"
+                                    wire:click="addItem"
+                                >
+                                    Legg til varelinje
+                                </button>
+                            </span>
+                        </td>
+
+                        <!-- Summary Labels -->
+                        <td colspan="4" class="px-2 pt-4 text-xs text-gray-800 text-right font-medium">
+                            <div>Totalt eks MVA:</div>
+                            <div>MVA:</div>
+                            <div>Rabatt:</div>
+                            <div>Totalt inkl MVA:</div>
+                        </td>
+                        <!-- Summary Values -->
+                        <td class="px-2 pt-4 text-xs text-gray-500 text-right tabular-nums" colspan="2">
+                            <div>kr {{ number_format($this->totals["total_excl_tax"], 2, ".", " ") }},-</div>
+                            <div>kr {{ number_format($this->totals["total_tax"], 2, ".", " ") }},-</div>
+                            <div>kr {{ number_format(-$this->totals["total_discount"], 2, ".", " ") }},-</div>
+                            <div>kr {{ number_format($this->totals["total_incl_tax"], 2, ".", " ") }},-</div>
+                        </td>
+                    </tr>
+
+                    </tfoot>
+                </table>
+            </div>
+        </x-panel>
+
+
+        @if($this->order->isWorkOrder())
+            <x-panel class="mt-4">
+                <x-slot name="heading">
+                    Sjekklister
+                </x-slot>
+
+
+                <div>
+                    @if(\App\Models\Company::current()->checklists()->exists())
+
+                        <div class="mb-4">
+                            <label for="checklist" class="block text-sm font-medium text-gray-700">Velg sjekkliste</label>
+                            <select
+                                id="checklist"
+                                name="checklist"
+                                wire:model="selectedChecklistId"
+                                class="bg-white text-gray-700 mt-1 block w-auto pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-navy-500 focus:border-navy-500 sm:text-sm rounded-md">
+                                <option selected value="">-</option>
+                                @foreach(\App\Models\Company::current()->checklists as $checklist)
+                                    <option value="{{ $checklist->id }}">{{ $checklist->title }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        @if($this->selectedChecklist)
+                            <ul>
+                                @foreach($this->selectedChecklist->list_items as $row)
+                                    <li class="py-4" wire:key="checklist-item-{{ $loop->index  }}">
+                                        <div>
+                                            <div class="text-gray-600 font-medium text-sm">
+                                                <span>
+                                                    {{ $loop->iteration }}.
+                                                    {{ $row }}
+                                                </span>
+                                            </div>
+
+                                            <div class="mt-2 space-y-4 sm:flex sm:items-center sm:space-y-0 sm:space-x-6">
+                                                <div class="flex items-center">
+                                                    <input
+                                                        id="checklist-{{ $loop->index }}-yes"
+                                                        type="radio"
+                                                        name="checklist-{{ $loop->index }}"
+                                                        wire:model="checklistValues.{{ $loop->index }}.value"
+                                                        value="YES"
+                                                        class="focus:ring-navy-500 h-4 w-4 text-navy-600 border-gray-300"
+                                                    >
+                                                    <label for="checklist-{{ $loop->index }}-yes" class="ml-3 block text-sm font-medium text-gray-700">Ja</label>
+                                                </div>
+
+                                                <div class="flex items-center">
+                                                    <input
+                                                        id="checklist-{{ $loop->index }}-no"
+                                                        type="radio"
+                                                        name="checklist-{{ $loop->index }}"
+                                                        wire:model="checklistValues.{{ $loop->index }}.value"
+                                                        value="NO"
+                                                        class="focus:ring-navy-500 h-4 w-4 text-navy-600 border-gray-300">
+                                                    <label for="checklist-{{ $loop->index }}-no" class="ml-3 block text-sm font-medium text-gray-700">Nei</label>
+                                                </div>
+
+                                                <div class="flex items-center">
+                                                    <input
+                                                        id="checklist-{{ $loop->index }}-na"
+                                                        type="radio"
+                                                        name="checklist-{{ $loop->index }}"
+                                                        wire:model="checklistValues.{{ $loop->index }}.value"
+                                                        value="NOT_CONSIDERED"
+                                                        class="focus:ring-navy-500 h-4 w-4 text-navy-600 border-gray-300">
+                                                    <label for="checklist-{{ $loop->index }}-na" class="ml-3 block text-sm font-medium text-gray-700">Ikke vurdert</label>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {{--
+                                            TODO:
+                                                If user editted checklist, the value might we previously had might no longer be at the correct index,
+                                                this is a bug, but this is a workaround for now
+                                        --}}
+                                        @if(isset($this->checklistValues[$loop->index]) && $this->checklistValues[$loop->index]["value"] !== null)
+                                            <div class="mt-2">
+                                                <x-textarea
+                                                    label="Notat"
+                                                    name="note-{{ $loop->index }}"
+                                                    wire:model.debounce="checklistValues.{{ $loop->index }}.note"
+                                                />
+                                            </div>
+                                        @endif
+                                    </li>
+                                @endforeach
+                            </ul>
+                        @endif
+                    @else
+
+                        <div>
+                            <p class="text-base text-gray-500">
+                                Du har ikke opprettet noen sjekklister, du kan gjøre dette
+                                <a href="{{ route("checklist.create") }}"
+                                   target="_blank"
+                                   class="text-navy-500 hover:underline">her</a>.
+                            </p>
+                        </div>
+
+                    @endif
+                </div>
+            </x-panel>
+        @endif
+
+
+        @if($order->exists)
+            <livewire:comments
+                :commentable="$order"
+                allow-attachments="true"
+                allow-multiple-attachments="true"
+            />
+        @endif
+
+
+        <div
+
+            x-data="{ open: @entangle('sendFormOpen')}"
+            class="fixed z-10 inset-0 overflow-y-auto"
+            aria-labelledby="modal-title"
+            role="dialog"
+            aria-modal="true"
+            x-show="open"
+            x-trap="open"
+            x-cloak
+
+        >
+            <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <!-- Background Overlay -->
+                <div
+                    x-show="open"
+                    x-on:click="open = false"
+                    x-transition:enter="ease-out duration-200"
+                    x-transition:enter-start="opacity-0"
+                    x-transition:enter-end="opacity-100"
+                    x-transition:leave="ease-in duration-150"
+                    x-transition:leave-start="opacity-100"
+                    x-transition:leave-end="opacity-0"
+                    class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+                    aria-hidden="true"
+                ></div>
+
+                <!-- This element is to trick the browser into centering the modal contents. -->
+                <span class="inline-block align-middle h-screen" aria-hidden="true">&#8203;</span>
+
+                <div
+                    x-show="open"
+                    x-transition:enter="ease-out duration-200"
+                    x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                    x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                    x-transition:leave="ease-in duration-150"
+                    x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                    x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                    class="inline-block align-middle bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all my-8 max-w-lg w-full sm:p-6">
+                    <div class="hidden sm:block absolute top-0 right-0 pt-4 pr-4">
+                        <button
+                            x-on:click="open = false"
+                            type="button"
+                            class="bg-white rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-navy-500">
+                            <span class="sr-only">Close</span>
+                            @svg("heroicon-o-x", "h-6 w-6")
+                        </button>
+                    </div>
+                    <div class="sm:flex sm:items-start">
+                        <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-navy-100 sm:mx-0 sm:h-10 sm:w-10">
+                            @svg("heroicon-o-mail-open", "h-6 w-6 text-navy-600")
+                        </div>
+                        <div class="mt-3 sm:mt-0 sm:ml-4 text-left flex-1">
+
+                            <h3 class="text-lg leading-6 font-medium text-gray-900">
+                                @if($this->invoiceType == \App\Enums\InvoiceType::invoice)
+                                    Opprett faktura
+                                @else
+                                    Opprett kontantfaktura
+                                @endif
+                            </h3>
+
+
+                            <div class="mt-2 mb-2">
+
+                                @if($this->invoiceType == \App\Enums\InvoiceType::cashInvoice)
+                                    <div class="my-3">
+                                        <label for="payment_type" class="block text-sm font-medium text-gray-700">Kunden betalte med</label>
+                                        <select
+                                            id="payment_type"
+                                            wire:model="paymentType"
+                                            class="text-gray-700 bg-white mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-navy-500 focus:border-navy-500 sm:text-sm rounded-md">
+                                            @foreach(\App\Enums\InvoicePaymentType::appliesTo($this->invoiceType) as $type)
+                                                <option value="{{ $type->value }}">
+                                                    {{ $type->label() }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                @endif
+
+                                <div class="my-3 w-full">
+                                    <label for="sending_method" class="block text-sm font-medium text-gray-700">Hvordan vil du sende fakturaen?</label>
+                                    <select
+                                        id="sending_method"
+                                        wire:model="invoiceSendingMethod"
+                                        class="text-gray-700 bg-white mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-navy-500 focus:border-navy-500 sm:text-sm rounded-md"
+                                    >
+                                        @foreach($this->availableSendingMethods as $method)
+                                            <option value="{{ $method->value }}">
+                                                {{ $method->label() }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                @if($this->invoiceSendingMethod == null || $this->invoiceSendingMethod == \App\Enums\InvoiceSendingMethod::none)
+                                    <div class="my-3">
+                                        <p class="mt-2 text-sm text-gray-500">Fakturakopi blir ikke sendt til kunde</p>
+                                    </div>
+                                @elseif($this->invoiceSendingMethod == \App\Enums\InvoiceSendingMethod::email)
+                                    <div class="my-3">
+                                        <x-input
+                                            label="Send til E-postadresse"
+                                            name="send_email"
+                                            placeholder="person@nettadresse.no"
+                                            wire:model="recipientEmail"
+                                        />
+
+                                        @if($this->invoiceType == \App\Enums\InvoiceType::invoice)
+                                            <p class="mt-2 text-sm text-gray-500">Mottaker får e-post med kopi av faktura som link og PDF vedlegg.</p>
+                                        @else
+                                            <p class="mt-2 text-sm text-gray-500">Mottaker får e-post med kopi av kontantfaktura som link og PDF vedlegg.</p>
+                                        @endif
+                                    </div>
+                                @elseif($this->invoiceSendingMethod == \App\Enums\InvoiceSendingMethod::sms)
+                                    <div class="my-3">
+                                        <x-input
+                                            label="Send til mobilnummer"
+                                            type="tel"
+                                            name="send_sms"
+                                            placeholder="+47 900 12 345"
+                                            wire:model="recipientPhone"
+                                        />
+
+                                        @if($this->invoiceType == \App\Enums\InvoiceType::invoice)
+                                            <p class="mt-2 text-sm text-gray-500">Mottaker får SMS med link til faktura.</p>
+                                        @else
+                                            <p class="mt-2 text-sm text-gray-500">Mottaker får SMS med link til kontantfaktura.</p>
+                                        @endif
+                                    </div>
+                                @else
+                                    <div class="my-3">
+                                        <p class="mt-2 text-sm text-gray-500">
+                                            Faktura sendes med
+                                            '{{ $this->invoiceSendingMethod->label() }}'
+                                            @if($this->activeInvoiceIntegration)
+                                                fra {{ $this->activeInvoiceIntegration->label() }}.
+                                            @endif
+                                        </p>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+
+                        @if($this->invoiceSendingMethod != \App\Enums\InvoiceSendingMethod::none)
+                            <button
+                                wire:click="createInvoice(true)"
+                                type="button"
+                                title="Oppretter faktura og sender kopi til kunde"
+                                class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-navy-600 font-medium dark:text-white text-white hover:bg-navy-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-navy-500 sm:ml-3 sm:w-auto text-sm">
+                                Opprett og send kopi til kunde
+                            </button>
+                        @endif
+
+                        <button
+                            wire:click="createInvoice(false)"
+                            type="button"
+                            title="Oppretter faktura uten å sende kopi til kunde"
+                            class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white font-medium text-gray-700 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-navy-500 sm:ml-3 sm:mt-0 sm:w-auto text-sm">
+                            Opprett
+                        </button>
+                        <button
+                            x-on:click="open = false"
+                            type="button"
+                            title="Lukker dette vinduet"
+                            class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white font-medium text-gray-700 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-navy-500 sm:mt-0 sm:w-auto text-sm">
+                            Avbryt
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</x-layouts.page>

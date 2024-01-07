@@ -2,106 +2,109 @@
 
 namespace HelgeSverre\BladeHeroiconsUpgrader\Commands;
 
+use HelgeSverre\BladeHeroiconsUpgrader\Data\Replacement;
+use HelgeSverre\BladeHeroiconsUpgrader\IconReplacer;
 use Illuminate\Console\Command;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\File;
-use Spatie\Regex\Regex;
+use Laravel\Prompts\Progress;
+
+use function Laravel\Prompts\confirm;
+use function Laravel\Prompts\error;
+use function Laravel\Prompts\info;
+use function Laravel\Prompts\note;
+use function Laravel\Prompts\progress;
+use function Laravel\Prompts\table;
 
 class UpgradeIcons extends Command
 {
-    protected $signature = 'blade-heroicons-upgrader:upgrade {paths?*} {--dry : Perform a dry run without actually replacing any icons}';
+    protected $signature = 'blade-heroicons-upgrader:upgrade {paths?*} {--dry : Perform a dry run without actually replacing any icons} ';
 
-    protected $description = 'Replace old icon names with new ones';
-
-    public static array $variants = ['o', 's', 'm'];
+    protected $description = 'Replace references to Heroicons v1 icon names with Heroicon v2 icon names';
 
     public function handle()
     {
+        $start = hrtime(true);
         $paths = Arr::wrap($this->argument('paths'));
 
         if (empty($paths)) {
             $paths = ['./resources/views'];
-            $this->comment("No path(s) provided, using default: {$paths[0]}");
-        }
+            $confirmed = confirm(
+                label: 'No path(s) provided, use defaults?',
+                hint: "Default path: {$paths[0]}"
+            );
 
-        $totalReplaced = 0;
-        $totalFilesWithReplacements = 0;
-
-        foreach ($paths as $path) {
-            $realPath = realpath($path);
-
-            if (! File::exists($realPath)) {
-                $this->error("The path {$path} does not exist.");
+            if (! $confirmed) {
+                error('Aborting');
 
                 return;
             }
 
-            $files = File::isFile($realPath) ? [$realPath] : File::allFiles($realPath);
+            info("Using default path: {$paths[0]}");
 
-            $iconsMap = $this->getIconsMap();
+        }
 
-            foreach ($files as $file) {
-                $this->info("{$file}");
+        /**
+         * @var Replacement[] $replacements
+         */
+        $replacements = [];
 
-                $count = $this->replaceIconsInFile($file, $iconsMap);
+        $iconReplacer = new IconReplacer(
+            config('blade-heroicons-upgrader.replacements')
+        );
 
-                $totalReplaced += $count;
+        $allFiles = collect($paths)->flatMap(function ($path) {
+            $realPath = realpath($path);
+            if (File::missing($realPath)) {
+                return null;
+            }
 
-                if ($count) {
-                    $totalFilesWithReplacements++;
-                    $this->comment("> Replaced {$count} icons.\n");
+            return File::isFile($realPath) ? [$realPath] : File::allFiles($realPath);
+        })->filter()->values();
+
+        progress(
+            label: 'Processing files',
+            steps: $allFiles,
+            callback: function (string $file, Progress $progress) use ($iconReplacer, &$replacements) {
+
+                $progress->hint("Processing: $file");
+
+                $contents = File::get($file);
+
+                $info = $iconReplacer->inFile($file)->replaceIcons($contents);
+
+                if (! $this->option('dry')) {
+                    File::put($file, $info->new);
+
+                    foreach ($info->adjustedReplacements as $replacement) {
+                        $replacements[] = $replacement;
+                    }
                 }
 
-            }
+                foreach ($info->replacements as $replacement) {
+                    $replacements[] = $replacement;
+                }
+            },
+        );
 
-        }
+        table(
+            ['Old icon', 'New Icon', 'Location'],
+            array_map(function ($replacement) {
+                $relativePath = str_replace(getcwd().'/', '', $replacement->filePath);
 
-        $this->comment("\n\nDONE: Replaced {$totalReplaced} icons across {$totalFilesWithReplacements} files.");
-    }
+                return [
+                    $replacement->oldIcon,
+                    $replacement->newIcon,
+                    "{$relativePath}:{$replacement->line}:{$replacement->column}",
+                ];
+            }, $replacements)
+        );
 
-    protected function replaceIconsInFile(string $file, array $iconsMap): int
-    {
-        $replaced = 0;
-        $contents = file_get_contents($file);
+        $replacementCount = count($replacements);
 
-        foreach ($iconsMap as $oldName => $newName) {
-            if ($oldName === $newName) {
-                continue;
-            }
+        $timeInSec = round((hrtime(true) - $start) / 1000000000, 2);
 
-            foreach (self::$variants as $variant) {
-
-                // Define a custom boundary for the regex.
-                // This boundary ensures that the icon name is preceded and followed by specific characters (whitespace, quote, slash) or line boundaries.
-                // Example:
-                // - Matches: " heroicon-o-adjustments ", "'heroicon-s-adjustments'", "/heroicon-m-adjustments/"
-                // - Does not match: "extra-heroicon-o-adjustments", "heroicon-o-adjustments-plus"
-                $boundary = "(?<=\s|'|\"|/|^)";
-                $endBoundary = "(?=\s|'|\"|/|$)";
-
-                // Construct the regex pattern to match the old icon name with the variant and custom boundary
-                $pattern = '#'.$boundary.'heroicon-'.$variant.'-'.preg_quote($oldName, '#').$endBoundary.'#';
-
-                $matched = Regex::matchAll($pattern, $contents)->results();
-                $replaced += count($matched);
-
-                $replaceWith = "heroicon-{$variant}-{$newName}";
-
-                $contents = Regex::replace($pattern, $replaceWith, $contents)->result();
-            }
-        }
-
-        if ($this->option('dry')) {
-            return $replaced;
-        }
-
-        file_put_contents($file, $contents);
-
-        return $replaced;
-    }
-
-    protected function getIconsMap(): array
-    {
-        return config('blade-heroicons-upgrader.replacements');
+        info("Replaced {$replacementCount} icons across {$allFiles->count()} files.");
+        note("Took {$timeInSec} seconds");
     }
 }
