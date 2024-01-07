@@ -7,6 +7,17 @@ it('runs the tests', function () {
 });
 
 // Test for Blade component syntax
+it('replaces heroicons in specific scenarios', function ($originalContent, $expectedContent) {
+    $replacer = new IconReplacer();
+    $iconsMap = config('blade-heroicons-upgrader.replacements');
+
+    $replacedContent = $replacer->replaceIcons($originalContent, $iconsMap);
+
+    expect($replacedContent->new)->toBe($expectedContent)
+        ->and($replacedContent->count())->toBe(1);
+})->with('RealWorld');
+
+// Test for Blade component syntax
 it('replaces heroicons correctly when used as component', function ($originalContent, $expectedContent) {
     $replacer = new IconReplacer();
     $iconsMap = ['old-icon-name' => 'new-icon-name'];
@@ -38,6 +49,40 @@ it('replaces heroicons correctly when used inside a quoted string', function ($o
     expect($replacedContent->new)->toBe($expectedContent)
         ->and($replacedContent->count())->toBe(1);
 })->with('Strings');
+
+it('quick test', function () {
+    $replacer = new IconReplacer();
+    $iconsMap = ['file-download' => 'document-arrow-down'];
+
+    // Blade component
+    $replaced = $replacer->replaceIcons('stuff before <x-heroicon-o-file-download /> stuff after', $iconsMap);
+    expect($replaced->new)->toBe('stuff before <x-heroicon-o-document-arrow-down /> stuff after');
+
+    // Blade component
+    $replaced = $replacer->replaceIcons('<x-heroicon-o-file-download />', $iconsMap);
+    expect($replaced->new)->toBe('<x-heroicon-o-document-arrow-down />');
+
+    // Blade component w newline
+    $replaced = $replacer->replaceIcons("<x-heroicon-o-file-download\n />", $iconsMap);
+    expect($replaced->new)->toBe("<x-heroicon-o-document-arrow-down\n />");
+
+    // SVG Directive
+    $replaced = $replacer->replaceIcons("@svg('heroicon-o-file-download')", $iconsMap);
+    expect($replaced->new)->toBe("@svg('heroicon-o-document-arrow-down')");
+
+    // Double quotes
+    $replaced = $replacer->replaceIcons('@svg("heroicon-o-file-download")', $iconsMap);
+    expect($replaced->new)->toBe('@svg("heroicon-o-document-arrow-down")');
+
+    // Single quotes
+    $replaced = $replacer->replaceIcons('@svg("heroicon-o-file-download")', $iconsMap);
+    expect($replaced->new)->toBe('@svg("heroicon-o-document-arrow-down")');
+
+    // in php file double quotes
+    $replaced = $replacer->replaceIcons('$icon = "heroicon-o-file-download";', $iconsMap);
+    expect($replaced->new)->toBe('$icon = "heroicon-o-document-arrow-down";');
+
+});
 
 it('it replaces 1', function () {
     $replacer = new IconReplacer();
@@ -95,4 +140,30 @@ it('it replaces with overlap', function () {
 
     expect($replacedContent->new)->toBe($expectedContent)
         ->and($replacedContent->count())->toBe(2);
+});
+
+it('it replaces without overwriting previously replaced icon', function () {
+    $replacer = new IconReplacer();
+    $iconsMap = [
+        'server' => 'server-stack',
+        'check' => 'checkmark',
+    ];
+    $originalContent = ' <x-heroicon-o-server-stack />   <x-heroicon-o-server />  ';
+    $expectedContent = ' <x-heroicon-o-server-stack />   <x-heroicon-o-server-stack />  ';
+
+    // Run it twice to make sure it doesn't replace the previously replaced icon
+    $replacedContent = $replacer->replaceIcons($originalContent, $iconsMap);
+    expect($replacedContent->new)->toBe($expectedContent)->and($replacedContent->count())->toBe(1);
+    $replacedContent = $replacer->replaceIcons($replacedContent->new, $iconsMap);
+
+    expect($replacedContent->new)->toBe($expectedContent)->and($replacedContent->count())->toBe(0);
+
+    $originalContent = ' Text with "\'heroicon-m-check" ';
+    $expectedContent = ' Text with "\'heroicon-m-checkmark" ';
+
+    $replacedContent = $replacer->replaceIcons($originalContent, $iconsMap);
+    expect($replacedContent->new)->toBe($expectedContent)->and($replacedContent->count())->toBe(1);
+    $replacedContent = $replacer->replaceIcons($replacedContent->new, $iconsMap);
+    expect($replacedContent->new)->toBe($expectedContent)->and($replacedContent->count())->toBe(0);
+
 });

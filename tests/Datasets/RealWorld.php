@@ -1,5 +1,5 @@
 <?php
 
 dataset('RealWorld', [
-    // TODO: Add weird edge cases here
+    ['<x-heroicon-o-cloud-download class="h-7 w-7" />', '<x-heroicon-o-cloud-arrow-down class="h-7 w-7" />'],
 ]);

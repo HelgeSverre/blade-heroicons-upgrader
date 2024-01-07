@@ -11,6 +11,9 @@ it('correctly upgrades icons in files', function ($sampleFile, $expectedReplacem
 
     $replacedContent = $replacer->replaceIcons($originalContent, $iconsMap);
 
+    dd($replacedContent);
+
+
     expect($replacedContent->count())->toBe($expectedReplacement);
 
 })->with([
