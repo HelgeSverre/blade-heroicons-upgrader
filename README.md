@@ -60,6 +60,12 @@ Run the command to upgrade your blade files:
 php artisan blade-heroicons-upgrader:upgrade 
 ```
 
+You can target a specific file using the `--file` option:
+
+```bash
+php artisan blade-heroicons-upgrader:upgrade --file=resources/views/welcome.blade.php
+```
+
 You may also specify one or more files or directories to run replacements on:
 
 ```bash 
