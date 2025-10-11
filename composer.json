@@ -62,7 +62,7 @@
         ],
         "analyse": "vendor/bin/phpstan analyse src tests",
         "test": "vendor/bin/pest",
-        "test-coverage": "herd coverage  vendor/bin/pest --coverage",
+        "test-coverage": "herd coverage vendor/bin/pest --coverage",
         "format": "vendor/bin/pint"
     },
     "config": {
