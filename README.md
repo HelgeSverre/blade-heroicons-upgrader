@@ -3,6 +3,8 @@
 # Blade Heroicons Upgrader
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/helgesverre/blade-heroicons-upgrader.svg)](https://packagist.org/packages/helgesverre/blade-heroicons-upgrader)
+[![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/helgesverre/blade-heroicons-upgrader/tests.yml?branch=main&label=tests)](https://github.com/helgesverre/blade-heroicons-upgrader/actions?query=workflow%3Atests+branch%3Amain)
+[![Total Downloads](https://img.shields.io/packagist/dt/helgesverre/blade-heroicons-upgrader.svg)](https://packagist.org/packages/helgesverre/blade-heroicons-upgrader)
 
 ## Storytime.
 
@@ -44,6 +46,12 @@ and `<x-clipboard-document-check />`.
 It's built to prevent overlapping or incorrect updates, ensuring that icons are not mistakenly transformed into something
 like `<x-heroicon-o-server-stack-stack />`.
 
+## Requirements
+
+- **PHP**: 8.1 or higher
+- **Laravel**: 10.17+, 11.x, or 12.x
+  - Laravel 10.17+ is required due to the `laravel/prompts` dependency
+
 ## Installation
 
 You can install the package via composer:
@@ -54,25 +62,25 @@ composer require --dev helgesverre/blade-heroicons-upgrader
 
 ## Usage
 
-Run the command to upgrade your blade files:
+Run the command to upgrade your blade files (defaults to `./resources/views`):
 
 ```bash
-php artisan blade-heroicons-upgrader:upgrade 
+php artisan blade-heroicons-upgrader:upgrade
 ```
 
-You can target a specific file using the `--file` option:
+You can target a specific file or directory by passing it as an argument:
 
 ```bash
-php artisan blade-heroicons-upgrader:upgrade --file=resources/views/welcome.blade.php
+php artisan blade-heroicons-upgrader:upgrade resources/views/welcome.blade.php
 ```
 
-You may also specify one or more files or directories to run replacements on:
+You may also specify one or more files or directories:
 
-```bash 
+```bash
 php artisan blade-heroicons-upgrader:upgrade ./resources/views ./app/Composers/MenuComposer.php
 ```
 
-You can also do a dry run to see how many replacements in which files will be done.
+You can do a dry run to preview replacements without modifying files:
 
 ```bash
 php artisan blade-heroicons-upgrader:upgrade --dry
