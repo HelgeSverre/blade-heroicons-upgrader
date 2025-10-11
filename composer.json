@@ -1,6 +1,6 @@
 {
     "name": "helgesverre/blade-heroicons-upgrader",
-    "description": ":package_description",
+    "description": "Automatically upgrade Heroicons v1 to v2 icon names in Blade templates",
     "keywords": [
         "helgesverre",
         "laravel",
@@ -20,18 +20,18 @@
     "require": {
         "php": "^8.1",
         "illuminate/contracts": "^10.0|^11.0|^12.0",
-        "laravel/prompts": "^0.1.14",
+        "laravel/prompts": "^0.1.14|^0.2|^0.3",
         "spatie/laravel-package-tools": "^1.14.0",
         "spatie/regex": "^3.1.1"
     },
     "require-dev": {
         "larastan/larastan": "^2.0.1",
         "laravel/pint": "^1.0",
-        "nunomaduro/collision": "^7.8",
-        "orchestra/testbench": "^8.8",
-        "pestphp/pest": "^2.30",
-        "pestphp/pest-plugin-arch": "^2.0",
-        "pestphp/pest-plugin-laravel": "^2.0",
+        "nunomaduro/collision": "^7.8|^8.0",
+        "orchestra/testbench": "^8.8|^9.0|^10.0",
+        "pestphp/pest": "^2.30|^3.0|^4.0",
+        "pestphp/pest-plugin-arch": "^2.0|^3.0",
+        "pestphp/pest-plugin-laravel": "^2.0|^3.0|^4.0",
         "phpstan/extension-installer": "^1.1",
         "phpstan/phpstan-deprecation-rules": "^1.0",
         "phpstan/phpstan-phpunit": "^1.0",
@@ -60,9 +60,9 @@
             "@composer run build",
             "@php vendor/bin/testbench serve"
         ],
-        "analyse": "vendor/bin/phpstan analyse",
+        "analyse": "vendor/bin/phpstan analyse src tests",
         "test": "vendor/bin/pest",
-        "test-coverage": "vendor/bin/pest --coverage",
+        "test-coverage": "herd coverage  vendor/bin/pest --coverage",
         "format": "vendor/bin/pint"
     },
     "config": {
