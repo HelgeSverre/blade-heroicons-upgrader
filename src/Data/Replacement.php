@@ -11,7 +11,5 @@ class Replacement
         public readonly int $line,
         public readonly int $column,
         public readonly ?string $filePath,
-    ) {
-
-    }
+    ) {}
 }

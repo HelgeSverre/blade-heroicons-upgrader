@@ -13,10 +13,7 @@ class IconReplacer
 
     public static array $variants = ['o', 's', 'm'];
 
-    public function __construct(protected array $iconMap = [])
-    {
-
-    }
+    public function __construct(protected array $iconMap = []) {}
 
     public function inFile($sampleFile): static
     {

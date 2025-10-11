@@ -13,9 +13,7 @@ class Result
         public readonly array $replacements,
         public readonly array $adjustedReplacements,
 
-    ) {
-
-    }
+    ) {}
 
     public function isEmpty(): bool
     {
