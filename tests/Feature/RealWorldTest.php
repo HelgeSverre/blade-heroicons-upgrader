@@ -6,7 +6,7 @@ use Symfony\Component\Console\Output\BufferedOutput;
 
 it('correctly upgrades icons in files', function ($sampleFile, $expectedReplacement) {
 
-    $replacer = new IconReplacer();
+    $replacer = new IconReplacer;
     $iconsMap = config('blade-heroicons-upgrader.replacements');
 
     $originalContent = file_get_contents($sampleFile);
@@ -28,9 +28,9 @@ it('correctly upgrades icons in files', function ($sampleFile, $expectedReplacem
 
 it('can run the command on files and get the same result', function ($sampleFile, $expectedReplacement) {
 
-    $buffer = new BufferedOutput();
+    $buffer = new BufferedOutput;
 
-    $this->app[Kernel::class]->call('blade-heroicons-upgrader:upgrade',
+    app(Kernel::class)->call('blade-heroicons-upgrader:upgrade',
         ['paths' => $sampleFile, '--dry' => true],
         $buffer
 
