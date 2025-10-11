@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:v1.heroicons.com)",
+      "WebFetch(domain:heroicons.com)",
+      "WebFetch(domain:gist.github.com)",
+      "WebFetch(domain:icones.js.org)",
+      "WebFetch(domain:github.com)",
+      "Bash(curl -s \"https://api.github.com/repos/tailwindlabs/heroicons/contents/optimized/outline?ref=v1.0.6\")",
+      "Bash(php:*)",
+      "Bash(comm:*)",
+      "Read(//private/tmp/**)",
+      "Bash(composer format)",
+      "Bash(composer analyse:*)",
+      "Bash(composer test)",
+      "Bash(composer clear:*)",
+      "Bash(composer prepare:*)",
+      "Bash(herd:*)",
+      "Bash(composer test-coverage:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
