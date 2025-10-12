@@ -37,18 +37,20 @@ The package consists of:
 
 1. **Service Provider** (`src/BladeHeroiconsUpgraderServiceProvider.php`): Registers the package and publishes configuration
 2. **Artisan Command** (`src/Commands/UpgradeIcons.php`): Main command that handles the upgrade process
-   - Supports dry-run mode with `--dry-run` option
-   - Can target specific files with `--file` option
-   - Processes all Blade files in resources/views by default
+    - Supports dry-run mode with `--dry-run` option
+    - Can target specific files with `--file` option
+    - Processes all Blade files in resources/views by default
 3. **Configuration** (`config/blade-heroicons-upgrader.php`): Contains 235 icon name mappings from v1 to v2
 
 ## Key Implementation Details
 
 The upgrade command uses regex patterns to replace icon names in two formats:
+
 - `@svg()` directive: `@svg("old-icon")` → `@svg("new-icon")`
 - Blade components: `<x-old-icon />` → `<x-new-icon />`
 
 The regex patterns use custom word boundaries to handle:
+
 - Icon name variants (outline 'o', solid 's', mini 'm')
 - Special characters in icon names (dashes, slashes)
 - Preventing partial matches within larger icon names
@@ -99,6 +101,7 @@ composer format
 - **Sample files** (`tests/Samples/`): Real-world Blade templates for integration testing
 
 Focus areas:
+
 - Regex pattern matching for various icon formats (@svg, blade components, quoted strings)
 - Edge cases in icon name replacements (overlapping names, partial matches)
 - Dry-run vs actual file modification behavior

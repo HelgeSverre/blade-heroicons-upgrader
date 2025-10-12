@@ -199,3 +199,36 @@ it('handles files with no icon replacements', function () {
     // Cleanup
     File::deleteDirectory($tempDir);
 });
+
+it('prompts for confirmation when no paths provided and user confirms', function () {
+    // Create temp directory to act as default path
+    $tempDir = './resources/views';
+    $originalExists = File::exists($tempDir);
+
+    if (! $originalExists) {
+        File::makeDirectory($tempDir, 0755, true);
+    }
+
+    // Create a test file in the default directory
+    $tempFile = $tempDir.'/test-prompt.blade.php';
+    File::put($tempFile, '<x-heroicon-o-archive />');
+
+    try {
+        $this->artisan('blade-heroicons-upgrader:upgrade', ['--dry' => true])
+            ->expectsConfirmation('No path(s) provided, use defaults?', 'yes')
+            ->assertExitCode(0);
+    } finally {
+        // Cleanup
+        File::delete($tempFile);
+        if (! $originalExists && File::exists($tempDir)) {
+            File::deleteDirectory($tempDir);
+        }
+    }
+});
+
+it('prompts for confirmation when no paths provided and user declines', function () {
+    $this->artisan('blade-heroicons-upgrader:upgrade', ['--dry' => true])
+        ->expectsConfirmation('No path(s) provided, use defaults?', 'no')
+        ->assertExitCode(0)
+        ->expectsOutputToContain('Aborting');
+});

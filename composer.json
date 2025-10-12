@@ -60,10 +60,20 @@
             "@composer run build",
             "@php vendor/bin/testbench serve"
         ],
-        "analyse": "vendor/bin/phpstan analyse src tests",
+        "analyse": "vendor/bin/phpstan analyse",
         "test": "vendor/bin/pest",
         "test-coverage": "herd coverage vendor/bin/pest --coverage",
-        "format": "vendor/bin/pint"
+        "format": "vendor/bin/pint",
+        "test-install": "bash test-install.sh",
+        "e2e": [
+            "@composer install",
+            "@composer format",
+            "@composer analyse",
+            "@composer test",
+            "@composer test-coverage",
+            "bash test-install.sh",
+            "rm -rf wip/"
+        ]
     },
     "config": {
         "sort-packages": true,

@@ -60,7 +60,9 @@ class UpgradeIcons extends Command
             }
 
             return File::isFile($realPath) ? [$realPath] : File::allFiles($realPath);
-        })->filter()->values();
+        })->filter()->map(function ($file) {
+            return is_string($file) ? $file : $file->getRealPath();
+        })->values();
 
         progress(
             label: 'Processing files',
